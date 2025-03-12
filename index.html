@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>oz3R</title>
+  <style>
+    /* Genel Stil */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+      background-color: #121212;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Yüklenme Ekranı */
+    .loading-screen {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      background-color: #121212;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .loading-circle {
+      position: relative;
+      width: 100px;
+      height: 100px;
+    }
+
+    .loading-circle .dot {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #ffffff;
+      opacity: 0;
+      animation: dotAppear 1.5s infinite ease-in-out;
+    }
+
+    .loading-circle .dot:nth-child(1) {
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      animation-delay: 0s;
+    }
+
+    .loading-circle .dot:nth-child(2) {
+      top: 20%;
+      right: 10%;
+      animation-delay: 0.2s;
+    }
+
+    .loading-circle .dot:nth-child(3) {
+      top: 50%;
+      right: 0;
+      transform: translateY(-50%);
+      animation-delay: 0.4s;
+    }
+
+    .loading-circle .dot:nth-child(4) {
+      bottom: 20%;
+      right: 10%;
+      animation-delay: 0.6s;
+    }
+
+    .loading-circle .dot:nth-child(5) {
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      animation-delay: 0.8s;
+    }
+
+    .loading-circle .dot:nth-child(6) {
+      bottom: 20%;
+      left: 10%;
+      animation-delay: 1s;
+    }
+
+    .loading-circle .dot:nth-child(7) {
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%);
+      animation-delay: 1.2s;
+    }
+
+    .loading-circle .dot:nth-child(8) {
+      top: 20%;
+      left: 10%;
+      animation-delay: 1.4s;
+    }
+
+    @keyframes dotAppear {
+      0% {
+        opacity: 0;
+        transform: scale(0.5);
+      }
+      50% {
+        opacity: 1;
+        transform: scale(1.5);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(0.5);
+      }
+    }
+
+    /* Ana Konteyner */
+    .wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3rem;
+      display: none;
+    }
+
+    /* Logo */
+    .logo {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 80%;
+      left: 5%;
+      font-family: 'Courier New', monospace;
+      font-size: 1.8rem;
+      user-select: none;
+      animation: blinkLogo 2s infinite alternate;
+    }
+
+    @keyframes blinkLogo {
+      0% { opacity: 1; }
+      100% { opacity: 0.3; }
+    }
+
+    .logo pre {
+      font-family: 'Courier New', monospace;
+      font-size: 1.4rem;
+    }
+
+    /* Form Konteyner */
+    .container {
+      width: 400px;
+      background-color: #1e1e1e;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(255, 255, 255, 0.1);
+      position: absolute;
+      right: 5%;
+      top: 50%;
+      transform: translateY(-50%);
+      text-align: center;
+    }
+
+    h2 {
+      margin-bottom: 1rem;
+      font-size: 1.6rem;
+    }
+
+    /* Form Elemanları */
+    input {
+      width: 100%;
+      padding: 0.75rem;
+      margin: 0.5rem 0;
+      border: 1px solid #444;
+      border-radius: 6px;
+      font-size: 1rem;
+      background-color: #2a2a2a;
+      color: white;
+      box-sizing: border-box;
+    }
+
+    input:focus {
+      border-color: #007bff;
+      outline: none;
+    }
+
+    /* Butonlar */
+    button {
+      width: 100%;
+      padding: 0.9rem;
+      margin-top: 1rem;
+      border: none;
+      border-radius: 6px;
+      background-color: #007bff;
+      color: white;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    /* Kullanıcı Sözleşmesi */
+    .terms-container {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap:0.5rem;
+      margin-top: 1rem;
+      margin-right: 7rem;
+      white-space: nowrap;
+    }
+
+    .terms-container input {
+      flex-shrink: 10;
+      margin: 0;
+    }
+
+    .terms-container label {
+      color: #007bff;
+      font-size: 1rem;
+      cursor: pointer;
+      flex-grow: 1;
+    }
+
+    /* Linkler */
+    .links {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .links a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    /* Kayıt Formu */
+    .signup-container {
+      display: none;
+    }
+
+    /* Yeni Şifre Formu */
+    .forgot-password-container {
+      display: none;
+    }
+
+    /* Şifremi Unuttum Linki */
+    .forgot-password-link {
+      font-size: 0.8rem;
+      text-align: right;
+      display: block;
+      margin-top: 1rem;
+      text-decoration: none;
+      color: #007bff;
+    }
+
+    .forgot-password-link:hover {
+      color: #0056b3;
+    }
+
+    /* Kayıt Ol Linki */
+    .centered-link {
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 1.5rem;
+    }
+
+    /* Mobil Cihazlar İçin Uyarı */
+    .mobile-warning {
+      display: none;
+      text-align: center;
+      font-size: 1.5rem;
+      color: red;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Yüklenme Ekranı -->
+  <div class="loading-screen">
+    <div class="loading-circle">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+  </div>
+
+  <!-- Mobil Cihazlar İçin Uyarı -->
+  <div class="mobile-warning">
+    Eyvah! Bilgisayar kullanmıyorsunuz. Girişiniz yasak!
+  </div>
+
+  <div class="wrapper">
+    <!-- Logo -->
+    <div class="logo">
+      <pre>
+         /|
+        /@|
+       /@@|___
+      /@@@@@@/   oz3R-App
+         |@@/    Copyright (c) 2025 oz3R, Inc.
+         |@/
+         |/
+      </pre>
+    </div>
+
+    <!-- Giriş / Kayıt Formları -->
+    <div class="container">
+      <!-- Giriş Formu -->
+      <form id="loginForm" onsubmit="login(event)">
+        <h2>Giriş Yap</h2>
+        <input type="email" id="loginEmail" placeholder="E-posta" required onpaste="return false;" ondrop="return false;">
+        <input type="password" id="loginPassword" placeholder="Şifre" required onpaste="return false;" ondrop="return false;">
+        <button type="submit">Giriş Yap</button>
+        <div class="links">
+          <a href="#" onclick="toggleForm('signup')" class="centered-link">Kayıt Ol</a>
+        </div>
+        <div>
+          <a href="#" onclick="toggleForm('forgotPassword')" class="forgot-password-link">Şifremi Unuttum</a>
+        </div>
+      </form>
+
+      <!-- Kayıt Formu -->
+      <form id="signupForm" class="signup-container" onsubmit="signup(event)">
+        <h2>Kayıt Ol</h2>
+        <div style="display: flex; gap: 10px;">
+          <input type="text" id="firstName" placeholder="İsim" required onpaste="return false;" ondrop="return false;">
+          <input type="text" id="lastName" placeholder="Soyisim" required onpaste="return false;" ondrop="return false;">
+        </div>
+        <input type="text" id="username" placeholder="Kullanıcı Adı" required onpaste="return false;" ondrop="return false;">
+        <input type="date" id="birthdate" required>
+        <input type="email" id="signupEmail" placeholder="E-posta" required onpaste="return false;" ondrop="return false;">
+        <input type="password" id="signupPassword" placeholder="Şifre" required onpaste="return false;" ondrop="return false;">
+        <div class="terms-container">
+          <input type="checkbox" id="agreeTerms" onchange="toggleSignupButton()">
+          <label for="agreeTerms">Kullanıcı sözleşmesini kabul ediyorum</label>
+        </div>
+        <button type="submit" id="signupButton" disabled>Kayıt Ol</button>
+        <div class="links">
+          <a href="#" onclick="toggleForm('login')" class="centered-link">Giriş Yap</a>
+        </div>
+      </form>
+
+      <!-- Şifremi Unuttum Formu -->
+      <form id="forgotPasswordForm" class="forgot-password-container" onsubmit="sendResetLink(event)">
+        <h2>Şifremi Unuttum</h2>
+        <input type="email" id="resetEmail" placeholder="E-posta Adresi" required onpaste="return false;" ondrop="return false;">
+        <button type="submit">Link Gönder</button>
+        <div class="links">
+          <a href="#" onclick="toggleForm('login')">Geri Dön</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Firebase ve Uygulama JS -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+  <script>
+    // Firebase yapılandırma
+    const firebaseConfig = {
+      apiKey: "AIzaSyD7Yv3p_S8hq6hCKE9kDV5KC9i9WULRFcU",
+      authDomain: "AIzaSyD7Yv3p_S8hq6hCKE9kDV5KC9i9WULRFcU",
+      projectId: "enesozer-chat",
+      storageBucket: "enesozer-chat.firebasestorage.app",
+      messagingSenderId: "490681724941",
+      appId: "1:490681724941:web:613f0043a68dc10af92544",
+      databaseURL: "https://enesozer-chat-default-rtdb.europe-west1.firebasedatabase.app" // Realtime Database URL'nizi buraya ekleyin
+    };
+
+    // Firebase'i başlat
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const database = firebase.database();
+
+    // Kullanıcı cihazını kontrol et
+    function isPC() {
+      const userAgent = navigator.userAgent;
+      const mobileKeywords = [/Android/i, /webOS/i, /iPhone/i, /iPad/i, /iPod/i, /BlackBerry/i, /Windows Phone/i];
+      return !mobileKeywords.some(keyword => userAgent.match(keyword));
+    }
+
+    // Form geçişleri
+    function toggleForm(formType) {
+      document.getElementById('loginForm').style.display = formType === 'login' ? 'block' : 'none';
+      document.getElementById('signupForm').style.display = formType === 'signup' ? 'block' : 'none';
+      document.getElementById('forgotPasswordForm').style.display = formType === 'forgotPassword' ? 'block' : 'none';
+      resetFormFields();
+    }
+
+    function toggleSignupButton() {
+      document.getElementById("signupButton").disabled = !document.getElementById("agreeTerms").checked;
+    }
+
+    // Doğum tarihi kontrolü
+    function validateBirthdate(birthdate) {
+      const minDate = new Date('1900-01-01');
+      const selectedDate = new Date(birthdate);
+      return selectedDate >= minDate;
+    }
+
+    // Kullanıcı adının benzersiz olup olmadığını kontrol et
+    function isUsernameUnique(username) {
+      return database.ref('users/' + username).once('value').then(snapshot => {
+        return !snapshot.exists();
+      });
+    }
+
+    // Kayıt işlemi
+    function signup(event) {
+      event.preventDefault();
+      const email = document.getElementById('signupEmail').value;
+      const password = document.getElementById('signupPassword').value;
+      const firstName = document.getElementById('firstName').value;
+      const lastName = document.getElementById('lastName').value;
+      const username = document.getElementById('username').value;
+      const birthdate = document.getElementById('birthdate').value;
+
+      // Doğum tarihi kontrolü
+      if (!validateBirthdate(birthdate)) {
+        alert("Doğum tarihi hatalı format.");
+        return;
+      }
+
+      // Kullanıcı adının benzersiz olup olmadığını kontrol et
+      isUsernameUnique(username).then(isUnique => {
+        if (!isUnique) {
+          alert("Bu kullanıcı adı zaten alınmış. Lütfen başka bir kullanıcı adı seçin.");
+          return;
+        }
+
+        // Kullanıcıyı Firebase Authentication ile kaydet
+        auth.createUserWithEmailAndPassword(email, password)
+          .then((userCredential) => {
+            const user = userCredential.user;
+
+            // Kullanıcı bilgilerini Realtime Database'e kaydet (kullanıcı adı ID olarak)
+            database.ref('users/' + username).set({
+              firstName: firstName,
+              lastName: lastName,
+              birthdate: birthdate,
+              email: email,
+              username: username
+            }).then(() => {
+              alert("Kayıt başarılı! Bilgileriniz kaydedildi.");
+            }).catch((error) => {
+              alert("Bilgileriniz kaydedilirken bir hata oluştu: " + error.message);
+            });
+          })
+          .catch((error) => {
+            alert("Kayıt başarısız: " + error.message);
+          });
+      }).catch(error => {
+        alert("Kullanıcı adı kontrolü sırasında bir hata oluştu: " + error.message);
+      });
+    }
+
+    // Giriş işlemi
+    function login(event) {
+      event.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          alert("Giriş başarılı!");
+          // Giriş sonrası yönlendirme veya işlemler
+        })
+        .catch((error) => {
+          alert("Giriş başarısız: " + error.message);
+        });
+    }
+
+    // Şifre sıfırlama işlemi
+    function sendResetLink(event) {
+      event.preventDefault();
+      const email = document.getElementById('resetEmail').value;
+
+      auth.sendPasswordResetEmail(email)
+        .then(() => {
+          alert("Şifre sıfırlama linki gönderildi!");
+        })
+        .catch((error) => {
+          alert("Şifre sıfırlama linki gönderilemedi: " + error.message);
+        });
+    }
+
+    // Form alanlarını sıfırla
+    function resetFormFields() {
+      document.getElementById("loginEmail").value = '';
+      document.getElementById("loginPassword").value = '';
+      document.getElementById("signupEmail").value = '';
+      document.getElementById("signupPassword").value = '';
+      document.getElementById("resetEmail").value = '';
+    }
+
+    // Sayfa yüklendiğinde yüklenme ekranını gizle ve cihaz kontrolü yap
+    window.onload = function() {
+      setTimeout(() => {
+        document.querySelector('.loading-screen').style.display = 'none';
+        if (isPC()) {
+          document.querySelector('.wrapper').style.display = 'flex';
+        } else {
+          document.querySelector('.mobile-warning').style.display = 'block';
+        }
+      }, 1500);
+    };
+  </script>
+
+</body>
+</html>
