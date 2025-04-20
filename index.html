@@ -1,382 +1,3093 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=0.9">
-  <title>oz3R inline-block</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap');
-    body {
-      font-family: 'Montserrat', Arial, sans-serif;
-      background-color: #121212;
-      color: #e0e0e0;
-      padding: 20px;
-      display: flex;
-      gap: 30px;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>oz3R, Inc - Tetris with Admin Panel</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: #f3f4f6;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .content-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 50px; /* Space for footer */
+  }
+
+  .game-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    text-align: center;
+    margin: 1.5rem 0;
+    color: #1f2937;
+  }
+
+  .main-container {
+    display: flex;
+    justify-content: center;
+    margin: 0 auto;
+    padding: 0 1rem;
+    max-width: 1200px;
+  }
+
+  /* Fallback for browsers that don't support gap */
+  .main-container > * {
+    margin: 0 1rem;
+  }
+
+  @supports (gap: 2rem) {
+    .main-container {
+      gap: 2rem;
+    }
+    .main-container > * {
+      margin: 0;
+    }
+  }
+
+  .player-info {
+    width: 250px;
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    height: fit-content;
+  }
+
+  .info-item {
+    margin-bottom: 1.5rem;
+  }
+
+  .info-label {
+    font-size: 1rem;
+    color: #6b7280;
+    margin-bottom: 0.25rem;
+  }
+
+  .info-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #1f2937;
+  }
+
+  .username-value {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #3b82f6;
+    word-break: break-word;
+  }
+
+  .game-container {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .board {
+    display: grid;
+    background-color: #d1d5db;
+    border: 1px solid #e5e7eb;
+  }
+
+  .cell {
+    width: 30px;
+    height: 30px;
+    border: 1px solid #e5e7eb;
+    background-color: #f3f4f6;
+  }
+
+  .instructions {
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    color: #4b5563;
+    text-align: center;
+  }
+
+  .game-over {
+    margin-top: 1rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #dc2626;
+    text-align: center;
+  }
+
+  .controls {
+    display: flex;
+    margin-top: 1.5rem;
+    justify-content: center;
+  }
+
+  /* Fallback for browsers that don't support gap */
+  .controls > * {
+    margin: 0 0.5rem;
+  }
+
+  @supports (gap: 1rem) {
+    .controls {
+      gap: 1rem;
+    }
+    .controls > * {
+      margin: 0;
+    }
+  }
+
+  button {
+    padding: 0.75rem 1.25rem;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 0.25rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+  }
+
+  button:hover {
+    background-color: #2563eb;
+  }
+
+  button:disabled {
+    background-color: #93c5fd;
+    cursor: not-allowed;
+  }
+
+  .music-icon {
+    margin-right: 0.5rem;
+  }
+
+  /* Tetromino colors */
+  .cyan-500 { background-color: #06b6d4; }
+  .blue-500 { background-color: #3b82f6; }
+  .orange-500 { background-color: #f97316; }
+  .yellow-500 { background-color: #eab308; }
+  .green-500 { background-color: #22c55e; }
+  .purple-500 { background-color: #a855f7; }
+  .red-500 { background-color: #ef4444; }
+
+  /* Animation for completed rows */
+  @keyframes flash {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0; transform: scale(1.1); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  .flash {
+    animation: flash 0.3s;
+  }
+
+  /* Login screen */
+  .login-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #1f2937;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+  }
+
+  .login-title {
+    font-size: 3rem;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 2rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .login-container {
+    background-color: white;
+    padding: 2.5rem;
+    border-radius: 0.5rem;
+    width: 90%;
+    max-width: 450px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  }
+
+  .login-container h2 {
+    margin-bottom: 1.5rem;
+    font-size: 1.75rem;
+    color: #1f2937;
+  }
+
+  .login-container input {
+    width: 100%;
+    padding: 0.875rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.25rem;
+    font-size: 1.125rem;
+  }
+
+  .login-container button {
+    width: 100%;
+    padding: 0.875rem;
+    font-size: 1.125rem;
+    background-color: #3b82f6;
+  }
+
+  .login-container button:hover {
+    background-color: #2563eb;
+  }
+
+  .error-message {
+    color: #dc2626;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+  }
+
+  /* Leaderboard */
+  .leaderboard {
+    width: 300px;
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    height: fit-content;
+  }
+
+  .leaderboard h2 {
+    text-align: center;
+    margin-bottom: 1.25rem;
+    font-size: 1.5rem;
+    color: #1f2937;
+  }
+
+  .leaderboard-list {
+    list-style-type: none;
+    padding: 0;
+  }
+
+  .leaderboard-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .leaderboard-rank {
+    font-weight: bold;
+    width: 30px;
+  }
+
+  .leaderboard-username {
+    flex-grow: 1;
+    text-align: left;
+    margin-left: 0.5rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .leaderboard-score {
+    font-weight: bold;
+    margin-left: 0.5rem;
+  }
+
+  /* Medal colors */
+  .rank-1 .leaderboard-rank, .rank-1 .leaderboard-username, .rank-1 .leaderboard-score {
+    color: #eab308; /* Gold */
+  }
+
+  .rank-2 .leaderboard-rank, .rank-2 .leaderboard-username, .rank-2 .leaderboard-score {
+    color: #94a3b8; /* Silver */
+  }
+
+  .rank-3 .leaderboard-rank, .rank-3 .leaderboard-username, .rank-3 .leaderboard-score {
+    color: #b45309; /* Bronze */
+  }
+
+  .current-user {
+    background-color: #f0f9ff;
+  }
+
+  /* Loading animation */
+  .loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top-color: #3b82f6;
+    animation: spin 1s ease-in-out infinite;
+    margin-left: 0.5rem;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Footer */
+  .footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: rgba(255, 255, 255, 0.8);
+    text-align: center;
+    padding: 0.75rem 0;
+    font-size: 1rem;
+    z-index: 10;
+  }
+
+  /* Mobile touch controls */
+  .touch-controls {
+    display: none;
+    justify-content: center;
+    margin-top: 1rem;
+  }
+
+  .touch-controls-row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .touch-btn {
+    width: 60px;
+    height: 60px;
+    background-color: rgba(59, 130, 246, 0.8);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 0.5rem;
+    color: white;
+    font-size: 1.5rem;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .touch-btn:active {
+    background-color: rgba(37, 99, 235, 0.9);
+    transform: scale(0.95);
+  }
+
+  /* Notification system */
+  .notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background-color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    max-width: 300px;
+    display: none;
+    animation: slideIn 0.3s ease-out;
+  }
+
+  .notification.error {
+    border-left: 4px solid #ef4444;
+  }
+
+  .notification.success {
+    border-left: 4px solid #22c55e;
+  }
+
+  .notification.info {
+    border-left: 4px solid #3b82f6;
+  }
+
+  .notification-title {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+
+  .notification-message {
+    font-size: 0.875rem;
+    color: #4b5563;
+  }
+
+  .notification-close {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #9ca3af;
+  }
+
+  @keyframes slideIn {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  /* Admin Panel Styles */
+  .admin-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #f3f4f6;
+    z-index: 200;
+    display: none;
+    overflow-y: auto;
+    padding: 2rem;
+  }
+
+  .admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .admin-title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #1f2937;
+  }
+
+  .admin-close {
+    background-color: #ef4444;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+  }
+
+  .admin-close:hover {
+    background-color: #dc2626;
+  }
+
+  .admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .admin-card {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .admin-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .admin-card-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #1f2937;
+  }
+
+  .admin-card-icon {
+    width: 40px;
+    height: 40px;
+    background-color: #e0f2fe;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #3b82f6;
+    font-size: 1.25rem;
+  }
+
+  .admin-card-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+  }
+
+  .admin-card-subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+
+  .admin-chart-container {
+    height: 300px;
+    margin-top: 1rem;
+    position: relative;
+  }
+
+  .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+  }
+
+  .admin-table th, .admin-table td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .admin-table th {
+    background-color: #f9fafb;
+    font-weight: 600;
+    color: #4b5563;
+  }
+
+  .admin-table tr:hover {
+    background-color: #f9fafb;
+  }
+
+  .admin-tabs {
+    display: flex;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 1.5rem;
+  }
+
+  .admin-tab {
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    font-weight: 500;
+  }
+
+  .admin-tab.active {
+    border-bottom: 2px solid #3b82f6;
+    color: #3b82f6;
+  }
+
+  .admin-tab-content {
+    display: none;
+  }
+
+  .admin-tab-content.active {
+    display: block;
+  }
+
+  .admin-toggle {
+    position: fixed;
+    bottom: 60px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    background-color: #3b82f6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 50;
+  }
+
+  .admin-toggle:hover {
+    background-color: #2563eb;
+  }
+
+  .admin-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-left: 0.5rem;
+  }
+
+  .admin-badge-green {
+    background-color: #d1fae5;
+    color: #065f46;
+  }
+
+  .admin-badge-red {
+    background-color: #fee2e2;
+    color: #b91c1c;
+  }
+
+  .admin-badge-blue {
+    background-color: #dbeafe;
+    color: #1e40af;
+  }
+
+  .admin-badge-yellow {
+    background-color: #fef3c7;
+    color: #92400e;
+  }
+
+  /* Chart styles */
+  .chart-container {
+    position: relative;
+    height: 250px;
+    width: 100%;
+  }
+
+  .chart-bar {
+    position: absolute;
+    bottom: 0;
+    width: 8%;
+    background-color: #3b82f6;
+    border-radius: 4px 4px 0 0;
+    transition: height 0.5s ease;
+  }
+
+  .chart-bar:hover {
+    background-color: #2563eb;
+  }
+
+  .chart-label {
+    position: absolute;
+    bottom: -25px;
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-align: center;
+    width: 8%;
+  }
+
+  .chart-line {
+    position: absolute;
+    width: 100%;
+    height: 1px;
+    background-color: #e5e7eb;
+  }
+
+  .chart-y-label {
+    position: absolute;
+    left: -40px;
+    font-size: 0.75rem;
+    color: #6b7280;
+  }
+
+  .chart-tooltip {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 10;
+  }
+
+  /* Responsive design */
+  @media (max-width: 1024px) {
+    .main-container {
       flex-direction: column;
-      min-height: 100vh;
-      box-sizing: border-box;
-      margin: 0;
-      padding-bottom: 60px;
-      font-size: 16px;
-      line-height: 1.6;
-    }
-    .content-wrapper {
-      display: flex;
-      gap: 30px;
-      flex: 1;
-    }
-    .left {
-      flex: 1;
-      min-width: 300px;
-    }
-    .right {
-      flex: 1;
-      min-width: 300px;
-      position: relative;
-    }
-    .wave-title {
-      font-size: 2.5rem;
-      color: #ffffff;
-      margin: 0 0 20px 0;
-      position: relative;
-      display: inline-block;
-    }
-    .wave-title span {
-      display: inline-block;
-      animation: wave 2s infinite;
-      animation-delay: calc(.1s * var(--i));
-    }
-    @keyframes wave {
-      0%, 40%, 100% { transform: translateY(0); }
-      20% { transform: translateY(-15px); }
-    }
-    .section {
-      margin-bottom: 20px;
-      background-color: #1e1e1e;
-      padding: 20px;
-      border-radius: 8px;
-    }
-    label {
-      font-size: 1.1rem;
-      margin-bottom: 12px;
-      display: block;
-      color: #ffffff;
-      font-weight: 500;
-    }
-    input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      margin-right: 12px;
-      vertical-align: middle;
-    }
-    button {
-      background-color: #6200ea;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      margin-top: 25px;
-      cursor: pointer;
-      font-size: 1.1rem;
-      border-radius: 8px;
-      width: 100%;
-      transition: all 0.3s;
-      font-weight: 500;
-    }
-    button:hover {
-      background-color: #3700b3;
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(98, 0, 234, 0.4);
-    }
-    select {
-      padding: 12px;
-      background-color: #333;
-      color: white;
-      border: none;
-      font-size: 1rem;
-      width: 100%;
-      border-radius: 6px;
-      margin-bottom: 15px;
-    }
-    pre {
-      background-color: #1e1e1e;
-      color: #00ff00;
-      padding: 15px;
-      border-radius: 8px;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      font-size: 0.9rem;
-      line-height: 1.5;
-      border: 1px solid #333;
-    }
-    .terminal-container {
-      position: absolute;
-      width: 100%;
-      left: -2%;
-      height: 310px;
-      margin: 15px;
-      overflow: hidden;
-      font-family: 'Consolas', 'Courier New', monospace;
-      background-color: #0C0C0C;
-      color: #CCFFCC;
-      border: 1px solid #3A3A3A;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    }
-    .terminal-header {
-      background-color: #1A1A1A;
-      color: #CCCCCC;
-      padding: 5px 10px;
-      font-size: 0.8rem;
-      border-bottom: 1px solid #3A3A3A;
-      display: flex;
-      justify-content: space-between;
-    }
-    .terminal-body {
-      padding: 10px;
-      height: calc(100% - 31px);
-      overflow-y: auto;
-    }
-    .terminal-line {
-      margin: 0;
-      line-height: 1.4;
-      font-size: 0.85rem;
-      white-space: pre-wrap;
-    }
-    .terminal-prompt {
-      color: #00FF00;
-    }
-    .terminal-cursor {
-      display: inline-block;
-      width: 8px;
-      height: 16px;
-      background-color: #CCFFCC;
-      animation: blink 1s infinite;
-      vertical-align: middle;
-      margin-left: 2px;
-    }
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0; }
-    }
-    footer {
-      background-color: rgba(30, 30, 30, 0.95);
-      color: #e0e0e0;
-      text-align: center;
-      font-weight: bold;
-      padding: 18px;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      width: 100%;
-      box-sizing: border-box;
-      backdrop-filter: blur(8px);
-      border-top: 1px solid #444;
-      font-size: 1rem;
-    }
-    .checkbox-group {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    .checkbox-item {
-      display: flex;
       align-items: center;
-      font-size: 1rem;
     }
-    .checkbox-item label {
-      font-size: 1rem;
-      margin-bottom: 0;
-      font-weight: normal;
+
+    .player-info, .leaderboard {
+      width: 100%;
+      max-width: 500px;
+      margin-bottom: 1.5rem;
     }
-    .section-title {
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: #ffffff;
-      margin-bottom: 15px;
-      display: block;
-      border-bottom: 2px solid #6200ea;
-      padding-bottom: 8px;
+
+    .touch-controls {
+      display: flex;
+      flex-direction: column;
     }
-    @media (max-width: 768px) {
-      .content-wrapper {
-        flex-direction: column;
-      }
-      .checkbox-group {
-        grid-template-columns: 1fr;
-      }
-      .wave-title {
-        font-size: 2rem;
-      }
-      body {
-        font-size: 15px;
-      }
+
+    .admin-grid {
+      grid-template-columns: 1fr;
     }
-  </style>
+  }
+
+  @media (max-width: 600px) {
+    .cell {
+      width: 25px;
+      height: 25px;
+    }
+
+    .admin-panel {
+      padding: 1rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .cell {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  /* Donut chart */
+  .donut-chart {
+    width: 150px;
+    height: 150px;
+    margin: 0 auto;
+    border-radius: 50%;
+    background: conic-gradient(
+      #3b82f6 0% var(--percentage, 75%), 
+      #e5e7eb var(--percentage, 75%) 100%
+    );
+    position: relative;
+  }
+
+  .donut-chart::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px;
+    height: 100px;
+    background-color: white;
+    border-radius: 50%;
+  }
+
+  .donut-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #1f2937;
+  }
+
+  /* Heat map */
+  .heat-map {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-top: 1rem;
+  }
+
+  .heat-map-cell {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 2px;
+    background-color: #e5e7eb;
+  }
+
+  .heat-map-cell[data-level="0"] { background-color: #e5e7eb; }
+  .heat-map-cell[data-level="1"] { background-color: #dbeafe; }
+  .heat-map-cell[data-level="2"] { background-color: #93c5fd; }
+  .heat-map-cell[data-level="3"] { background-color: #60a5fa; }
+  .heat-map-cell[data-level="4"] { background-color: #3b82f6; }
+  .heat-map-cell[data-level="5"] { background-color: #2563eb; }
+
+  .heat-map-legend {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+  }
+
+  .heat-map-legend-item {
+    display: flex;
+    align-items: center;
+  }
+
+  .heat-map-legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    margin-right: 4px;
+  }
+
+  /* User session list */
+  .user-session-list {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .user-session-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .user-session-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .user-session-name {
+    font-weight: 500;
+    color: #1f2937;
+  }
+
+  .user-session-time {
+    font-size: 0.75rem;
+    color: #6b7280;
+  }
+
+  .user-session-duration {
+    font-weight: 500;
+    color: #1f2937;
+  }
+
+  /* Password protection */
+  .admin-password-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 300;
+  }
+
+  .admin-password-container {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+  }
+
+  .admin-password-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: #1f2937;
+  }
+
+  .admin-password-input {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.25rem;
+  }
+
+  .admin-password-buttons {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .admin-password-cancel {
+    background-color: #ef4444;
+  }
+
+  .admin-password-cancel:hover {
+    background-color: #dc2626;
+  }
+</style>
 </head>
 <body>
-  <div class="content-wrapper">
-    <div class="left">
-      <div class="section">
-        <span class="section-title">Temel Ayarlar</span>
-        <label for="language">Dil Seçimi:</label>
-        <select id="language" onchange="updateXML()">
-          <option value="tr">Türkçe</option>
-          <option value="en">English</option>
-        </select>
-
-        <label for="architecture">Mimari Seçimi:</label>
-        <select id="architecture" onchange="updateXML()">
-          <option value="64" selected>x64</option>
-          <option value="32">x32</option>
-        </select>
+<div class="content-wrapper">
+  <h1 class="game-title">Tetris</h1>
+  <div class="main-container">
+    <div class="player-info">
+      <div class="info-item">
+        <div class="info-label">Score:</div>
+        <div id="score" class="info-value">0</div>
       </div>
-
-      <div class="section">
-        <span class="section-title">Uygulama Seçimi</span>
-        <div class="checkbox-group">
-          <div class="checkbox-item"><input type="checkbox" id="word" value="word16" onchange="updateXML()"><label for="word">Word</label></div>
-          <div class="checkbox-item"><input type="checkbox" id="excel" value="excel16" onchange="updateXML()"><label for="excel">Excel</label></div>
-          <div class="checkbox-item"><input type="checkbox" id="powerpoint" value="ppt16" onchange="updateXML()"><label for="powerpoint">PowerPoint</label></div>
-          <div class="checkbox-item"><input type="checkbox" id="onenote" value="onenote16" onchange="updateXML()"><label for="onenote">OneNote</label></div>
-          <div class="checkbox-item"><input type="checkbox" id="access" value="access16" onchange="updateXML()"><label for="access">Access</label></div>
-          <div class="checkbox-item"><input type="checkbox" id="publisher" value="publisher16" onchange="updateXML()"><label for="publisher">Publisher</label></div>
-          <div class="checkbox-item"><input type="checkbox" id="lync" value="lync16" onchange="updateXML()"><label for="lync">Lync (Exclude)</label></div>
-          <div class="checkbox-item"><input type="checkbox" id="onedrive" value="onedrive16" onchange="updateXML()"><label for="onedrive">OneDrive (Exclude)</label></div>
-          <div class="checkbox-item"><input type="checkbox" id="outlook" value="outlook16" onchange="updateXML()"><label for="outlook">Outlook (Exclude)</label></div>
-        </div>
+      <div class="info-item">
+        <div class="info-label">Level:</div>
+        <div id="level" class="info-value">1</div>
       </div>
-
-      <div class="section">
-        <span class="section-title">Lisans Ayarları</span>
-        <div class="checkbox-group">
-          <div class="checkbox-item"><input type="checkbox" id="sharedLicensing" checked onchange="updateXML()"><label for="sharedLicensing">Shared Computer Licensing</label></div>
-          <div class="checkbox-item"><input type="checkbox" id="forceAppShutdown" checked onchange="updateXML()"><label for="forceAppShutdown">Force App Shutdown</label></div>
-          <div class="checkbox-item"><input type="checkbox" id="deviceBasedLicensing" checked onchange="updateXML()"><label for="deviceBasedLicensing">Device Based Licensing</label></div>
-        </div>
+      <div class="info-item">
+        <div class="info-label">Oyuncu:</div>
+        <div id="username" class="username-value"></div>
       </div>
-
-      <button onclick="downloadFiles()">XML ve ODT Dosyasını İndir</button>
+      <div id="gameOver" class="game-over" style="display: none;">Game Over!</div>
+      <div class="controls">
+        <button id="resetBtn">Reset Game</button>
+      </div>
     </div>
 
-    <div class="right">
-      <h1 class="section-title">XML Çıktısı</h1>
-      <pre id="xmlOutput"></pre>
-
-      <h1 class="section-title">Kurulum Talimatları</h1>
-      <div class="terminal-container">
-        <div class="terminal-header">
-          <span>Command Prompt</span>
-          <span>▼ ■ ✕</span>
+    <div class="game-section">
+      <div class="game-container">
+        <div id="board" class="board"></div>
+        <div class="instructions">Press Up Arrow to rotate the block</div>
+      </div>
+      
+      <!-- Mobile touch controls -->
+      <div class="touch-controls">
+        <div class="touch-controls-row">
+          <div class="touch-btn" id="rotateBtn">↻</div>
         </div>
-        <div class="terminal-body" id="terminalAnim"></div>
+        <div class="touch-controls-row">
+          <div class="touch-btn" id="leftBtn">←</div>
+          <div class="touch-btn" id="downBtn">↓</div>
+          <div class="touch-btn" id="rightBtn">→</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="leaderboard">
+      <h2>Liderlik Tablosu 👑</h2>
+      <ul id="leaderboardList" class="leaderboard-list">
+        <li class="leaderboard-item">
+          <span class="leaderboard-rank">-</span>
+          <span class="leaderboard-username">Yükleniyor...</span>
+          <span class="leaderboard-score"><div class="loading"></div></span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  oz3R, Inc
+</footer>
+
+<!-- Admin Panel Toggle Button -->
+<div class="admin-toggle" id="adminToggle">👑</div>
+
+<!-- Admin Panel -->
+<div class="admin-panel" id="adminPanel">
+  <div class="admin-header">
+    <h1 class="admin-title">Admin Panel</h1>
+    <button class="admin-close" id="adminClose">Close</button>
+  </div>
+
+  <div class="admin-tabs">
+    <div class="admin-tab active" data-tab="overview">Overview</div>
+    <div class="admin-tab" data-tab="users">Users</div>
+    <div class="admin-tab" data-tab="statistics">Statistics</div>
+    <div class="admin-tab" data-tab="sessions">Sessions</div>
+  </div>
+
+  <!-- Overview Tab -->
+  <div class="admin-tab-content active" id="overview-tab">
+    <div class="admin-grid">
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div class="admin-card-title">Unique Visitors</div>
+          <div class="admin-card-icon">👥</div>
+        </div>
+        <div class="admin-card-value" id="uniqueVisitorsCount">0</div>
+        <div class="admin-card-subtitle">Total unique visitors</div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div class="admin-card-title">Online Users</div>
+          <div class="admin-card-icon">🟢</div>
+        </div>
+        <div class="admin-card-value" id="onlineUsersCount">0</div>
+        <div class="admin-card-subtitle">Currently active users</div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div class="admin-card-title">Avg. Session Duration</div>
+          <div class="admin-card-icon">⏱️</div>
+        </div>
+        <div class="admin-card-value" id="avgSessionDuration">0:00</div>
+        <div class="admin-card-subtitle">Average time spent per session</div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div class="admin-card-title">Total Games</div>
+          <div class="admin-card-icon">🎮</div>
+        </div>
+        <div class="admin-card-value" id="totalGamesCount">0</div>
+        <div class="admin-card-subtitle">Games played today</div>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <div class="admin-card-title">Visitor Activity (Last 7 Days)</div>
+      </div>
+      <div class="chart-container" id="visitorActivityChart">
+        <!-- Chart will be rendered here -->
       </div>
     </div>
   </div>
 
-  <footer>
-    Copyright (c) 2025 oz3R, Inc.
-  </footer>
+  <!-- Users Tab -->
+  <div class="admin-tab-content" id="users-tab">
+    <div class="admin-grid">
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div class="admin-card-title">User Demographics</div>
+        </div>
+        <div style="display: flex; justify-content: space-around; align-items: center; margin-top: 1rem;">
+          <div>
+            <div class="donut-chart" id="userRetentionChart">
+              <div class="donut-label" id="userRetentionLabel">75%</div>
+            </div>
+            <p style="text-align: center; margin-top: 0.5rem; font-size: 0.875rem; color: #6b7280;">Returning Users</p>
+          </div>
+          <div>
+            <div style="width: 150px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span style="font-size: 0.875rem; color: #6b7280;">New Users</span>
+                <span style="font-size: 0.875rem; font-weight: 500;" id="newUsersPercentage">25%</span>
+              </div>
+              <div style="height: 8px; background-color: #e5e7eb; border-radius: 4px; overflow: hidden;">
+                <div style="height: 100%; width: 25%; background-color: #3b82f6;" id="newUsersBar"></div>
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; margin: 1rem 0 0.5rem;">
+                <span style="font-size: 0.875rem; color: #6b7280;">Returning Users</span>
+                <span style="font-size: 0.875rem; font-weight: 500;" id="returningUsersPercentage">75%</span>
+              </div>
+              <div style="height: 8px; background-color: #e5e7eb; border-radius: 4px; overflow: hidden;">
+                <div style="height: 100%; width: 75%; background-color: #2563eb;" id="returningUsersBar"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-  <script>
-    window.onload = () => {
-      updateXML()
-      animateTerminal()
-    }
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div class="admin-card-title">Weekly Activity</div>
+        </div>
+        <div class="heat-map" id="weeklyActivityHeatMap">
+          <!-- Heat map will be rendered here -->
+        </div>
+        <div class="heat-map-legend">
+          <div class="heat-map-legend-item">
+            <div class="heat-map-legend-color" style="background-color: #e5e7eb;"></div>
+            <span>None</span>
+          </div>
+          <div class="heat-map-legend-item">
+            <div class="heat-map-legend-color" style="background-color: #dbeafe;"></div>
+            <span>Low</span>
+          </div>
+          <div class="heat-map-legend-item">
+            <div class="heat-map-legend-color" style="background-color: #93c5fd;"></div>
+            <span>Medium</span>
+          </div>
+          <div class="heat-map-legend-item">
+            <div class="heat-map-legend-color" style="background-color: #3b82f6;"></div>
+            <span>High</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    function updateXML() {
-      const lang = document.getElementById("language").value;
-      const arch = document.getElementById("architecture").value;
-      const exclude = [];
-      if (document.getElementById("lync").checked) exclude.push("Lync");
-      if (document.getElementById("onedrive").checked) exclude.push("OneDrive");
-      if (document.getElementById("outlook").checked) exclude.push("Outlook");
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <div class="admin-card-title">User List</div>
+      </div>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>First Seen</th>
+            <th>Last Active</th>
+            <th>Sessions</th>
+            <th>Avg. Duration</th>
+            <th>High Score</th>
+          </tr>
+        </thead>
+        <tbody id="userTableBody">
+          <!-- User data will be populated here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-      const sharedLicensing = document.getElementById("sharedLicensing").checked ? "1" : "0";
-      const forceAppShutdown = document.getElementById("forceAppShutdown").checked ? "TRUE" : "FALSE";
-      const deviceBasedLicensing = document.getElementById("deviceBasedLicensing").checked ? "1" : "0";
+  <!-- Statistics Tab -->
+  <div class="admin-tab-content" id="statistics-tab">
+    <div class="admin-grid">
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div class="admin-card-title">Monthly Entries</div>
+        </div>
+        <div class="chart-container" id="monthlyEntriesChart">
+          <!-- Chart will be rendered here -->
+        </div>
+      </div>
 
-      const xml = `
-<Configuration ID="db8978cc-64cf-48a8-ae1f-a227b1a99af2">
-  <Add OfficeClientEdition="${arch}" Channel="PerpetualVL2024">
-    <Product ID="ProPlus2024Volume" PIDKEY="XJ2XN-FW8RK-P4HMP-DKDBV-GCVGB">
-      <Language ID="${lang === "tr" ? "tr-tr" : "en-us"}" />
-      ${exclude.map(app => `<ExcludeApp ID="${app}" />`).join('\n      ')}
-    </Product>
-  </Add>
-  <Property Name="SharedComputerLicensing" Value="${sharedLicensing}" />
-  <Property Name="FORCEAPPSHUTDOWN" Value="${forceAppShutdown}" />
-  <Property Name="DeviceBasedLicensing" Value="${deviceBasedLicensing}" />
-  <Property Name="SCLCacheOverride" Value="0" />
-  <Property Name="AUTOACTIVATE" Value="1" />
-  <Updates Enabled="TRUE" />
-  <RemoveMSI />
-</Configuration>`.trim();
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div class="admin-card-title">Weekly Entries</div>
+        </div>
+        <div class="chart-container" id="weeklyEntriesChart">
+          <!-- Chart will be rendered here -->
+        </div>
+      </div>
+    </div>
 
-      document.getElementById("xmlOutput").textContent = xml;
-    }
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <div class="admin-card-title">Performance Metrics</div>
+      </div>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Today</th>
+            <th>Yesterday</th>
+            <th>This Week</th>
+            <th>Last Week</th>
+            <th>Trend</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Unique Visitors</td>
+            <td id="uniqueVisitorsToday">0</td>
+            <td id="uniqueVisitorsYesterday">0</td>
+            <td id="uniqueVisitorsThisWeek">0</td>
+            <td id="uniqueVisitorsLastWeek">0</td>
+            <td><span class="admin-badge admin-badge-green">+5%</span></td>
+          </tr>
+          <tr>
+            <td>Total Sessions</td>
+            <td id="totalSessionsToday">0</td>
+            <td id="totalSessionsYesterday">0</td>
+            <td id="totalSessionsThisWeek">0</td>
+            <td id="totalSessionsLastWeek">0</td>
+            <td><span class="admin-badge admin-badge-blue">+12%</span></td>
+          </tr>
+          <tr>
+            <td>Avg. Session Duration</td>
+            <td id="avgDurationToday">0:00</td>
+            <td id="avgDurationYesterday">0:00</td>
+            <td id="avgDurationThisWeek">0:00</td>
+            <td id="avgDurationLastWeek">0:00</td>
+            <td><span class="admin-badge admin-badge-red">-3%</span></td>
+          </tr>
+          <tr>
+            <td>Games Played</td>
+            <td id="gamesPlayedToday">0</td>
+            <td id="gamesPlayedYesterday">0</td>
+            <td id="gamesPlayedThisWeek">0</td>
+            <td id="gamesPlayedLastWeek">0</td>
+            <td><span class="admin-badge admin-badge-green">+8%</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-    function downloadFiles() {
-      const xml = document.getElementById("xmlOutput").textContent;
-      const blob = new Blob([xml], { type: 'application/xml' });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "configuration.xml";
-      a.click();
+  <!-- Sessions Tab -->
+  <div class="admin-tab-content" id="sessions-tab">
+    <div class="admin-grid">
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div class="admin-card-title">Session Duration Distribution</div>
+        </div>
+        <div class="chart-container" id="sessionDurationChart">
+          <!-- Chart will be rendered here -->
+        </div>
+      </div>
 
-      const odt = document.createElement("a");
-      odt.href = "https://download.microsoft.com/download/6c1eeb25-cf8b-41d9-8d0d-cc1dbc032140/officedeploymenttool_18623-20156.exe";
-      odt.download = "officedeploymenttool.exe";
-      odt.click();
-    }
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div class="admin-card-title">Active Sessions</div>
+        </div>
+        <div class="user-session-list" id="activeSessionsList">
+          <!-- Active sessions will be populated here -->
+        </div>
+      </div>
+    </div>
 
-    function animateTerminal() {
-      const terminal = document.getElementById("terminalAnim");
-      const lines = [
-        {text: "Microsoft Windows [Version 10.0.19045.4170]", delay: 500},
-        {text: "(c) Microsoft Corporation. All rights reserved.", delay: 500},
-        {text: " ", delay: 500},
-        {text: "C:\\OfficeSetup> mkdir C:\\%username%\\Office2024", delay: 1000},
-        {text: "C:\\Users\\%username%\\Downloads\\officedeploymenttool_18623-20156.exe", delay: 1500},
-        {text: "→ Lisansı kabul et ve dosyaları 'Office 2024' klasörüne çıkar", delay: 1000},
-        {text: " ", delay: 500},
-        {text: "C:\\OfficeSetup> cd C:\\%username%\\Office2024", delay: 1000},
-        {text: "C:\\OfficeSetup> setup /configure configuration.xml", delay: 1500},
-        {text: "→ Kurulum başlıyor, bu birkaç dakika sürebilir...", delay: 1000},
-        {text: " ", delay: 500},
-        {text: "C:\\OfficeSetup> C:\\Office2024> cscript ospp.vbs /sethst:kms.loli.best", delay: 1000},
-        {text: "→ → Office başarıyla etkinleştirildi!", delay: 1000},
-        {text: "C:\\OfficeSetup>", delay: 0, prompt: true},
-      ];
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <div class="admin-card-title">Recent Sessions</div>
+      </div>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Start Time</th>
+            <th>Duration</th>
+            <th>Games Played</th>
+            <th>High Score</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="recentSessionsTableBody">
+          <!-- Recent sessions will be populated here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Password Screen -->
+<div class="admin-password-screen" id="adminPasswordScreen" style="display: none;">
+  <div class="admin-password-container">
+    <div class="admin-password-title">Admin Authentication</div>
+    <input type="password" id="adminPasswordInput" class="admin-password-input" placeholder="Enter admin password">
+    <div class="admin-password-buttons">
+      <button id="adminPasswordCancel" class="admin-password-cancel">Cancel</button>
+      <button id="adminPasswordSubmit">Login</button>
+    </div>
+  </div>
+</div>
+
+<!-- Notification system -->
+<div id="notification" class="notification">
+  <div class="notification-close" onclick="hideNotification()">×</div>
+  <div class="notification-title" id="notificationTitle">Title</div>
+  <div class="notification-message" id="notificationMessage">Message</div>
+</div>
+
+<div id="loginScreen" class="login-screen">
+  <h1 class="login-title">oz3R, Inc</h1>
+  <div class="login-container">
+    <h2>Hoş Geldiniz</h2>
+    <div id="errorMessage" class="error-message" style="display: none;"></div>
+    <input type="text" id="usernameInput" placeholder="Kullanıcı Adınız" maxlength="12">
+    <button id="startGameBtn">Oyunu Başlat</button>
+  </div>
+</div>
+
+<audio id="tetrisMusic" src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Tetris-kxnh5j7hpNEcFspAndlU2huV5n6dvk.mp3" loop></audio>
+
+<!-- Firebase App (the core Firebase SDK) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<!-- Firebase Firestore -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+<script>
+  // Firebase configuration
+  const firebaseConfig = {
+      apiKey: "AIzaSyBG_o6KzcoVdEFOpKc19K7ohpKGeSsxh8A",
+      authDomain: "py-console-8d354.firebaseapp.com",
+      databaseURL: "https://py-console-8d354-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "py-console-8d354",
+      storageBucket: "py-console-8d354.appspot.com",
+      messagingSenderId: "829093298115",
+      appId: "1:829093298115:web:39f2d088b70101e538c776"
+  };
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // Constants
+  const BOARD_WIDTH = 10;
+  const BOARD_HEIGHT = 20;
+  const INITIAL_DROP_TIME = 800;
+  const SPEED_INCREASE_FACTOR = 0.95;
+  const SCORE_UPDATE_DEBOUNCE_TIME = 2000; // 2 seconds debounce for score updates
+  const ADMIN_PASSWORD = "admin123"; // Simple password for admin panel
+  const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
+  const HEARTBEAT_INTERVAL = 60 * 1000; // 1 minute in milliseconds
+
+  // Tetrominos
+  const TETROMINOS = {
+    I: { shape: [[1, 1, 1, 1]], color: 'cyan-500' },
+    J: { shape: [[1, 0, 0], [1, 1, 1]], color: 'blue-500' },
+    L: { shape: [[0, 0, 1], [1, 1, 1]], color: 'orange-500' },
+    O: { shape: [[1, 1], [1, 1]], color: 'yellow-500' },
+    S: { shape: [[0, 1, 1], [1, 1, 0]], color: 'green-500' },
+    T: { shape: [[0, 1, 0], [1, 1, 1]], color: 'purple-500' },
+    Z: { shape: [[1, 1, 0], [0, 1, 1]], color: 'red-500' },
+  };
+
+  // Game state
+  let board = [];
+  let currentPiece = null;
+  let score = 0;
+  let gameOver = false;
+  let dropTime = INITIAL_DROP_TIME;
+  let level = 1;
+  let isMusicPlaying = true;
+  let completedRows = [];
+  let dropInterval = null;
+  let currentUsername = '';
+  let uniqueUserId = '';
+  let leaderboardUnsubscribe = null;
+  let lastSavedScore = 0; // Track last saved score to avoid unnecessary updates
+  let scoreUpdateTimeout = null; // For debouncing score updates
+  let isScoreUpdatePending = false; // Flag to track if a score update is pending
+  let isBoardFull = false; // Flag to track if the board is full
+
+  // Analytics state
+  let sessionStartTime = null;
+  let sessionId = null;
+  let gamesPlayed = 0;
+  let isNewUser = true;
+  let heartbeatInterval = null;
+  let lastActivityTime = Date.now();
+  let totalSessionDuration = 0;
+  let isAdminPanelOpen = false;
+  let adminStatsUnsubscribe = null;
+
+  // DOM elements
+  const boardElement = document.getElementById('board');
+  const scoreElement = document.getElementById('score');
+  const levelElement = document.getElementById('level');
+  const gameOverElement = document.getElementById('gameOver');
+  const resetButton = document.getElementById('resetBtn');
+  const musicAudio = document.getElementById('tetrisMusic');
+  const loginScreen = document.getElementById('loginScreen');
+  const usernameInput = document.getElementById('usernameInput');
+  const startGameBtn = document.getElementById('startGameBtn');
+  const errorMessage = document.getElementById('errorMessage');
+  const usernameDisplay = document.getElementById('username');
+  const leaderboardList = document.getElementById('leaderboardList');
+  const notification = document.getElementById('notification');
+  const notificationTitle = document.getElementById('notificationTitle');
+  const notificationMessage = document.getElementById('notificationMessage');
+  
+  // Mobile touch controls
+  const rotateBtn = document.getElementById('rotateBtn');
+  const leftBtn = document.getElementById('leftBtn');
+  const rightBtn = document.getElementById('rightBtn');
+  const downBtn = document.getElementById('downBtn');
+
+  // Admin panel elements
+  const adminToggle = document.getElementById('adminToggle');
+  const adminPanel = document.getElementById('adminPanel');
+  const adminClose = document.getElementById('adminClose');
+  const adminTabs = document.querySelectorAll('.admin-tab');
+  const adminTabContents = document.querySelectorAll('.admin-tab-content');
+  const adminPasswordScreen = document.getElementById('adminPasswordScreen');
+  const adminPasswordInput = document.getElementById('adminPasswordInput');
+  const adminPasswordSubmit = document.getElementById('adminPasswordSubmit');
+  const adminPasswordCancel = document.getElementById('adminPasswordCancel');
+
+  // Admin panel statistics elements
+  const uniqueVisitorsCount = document.getElementById('uniqueVisitorsCount');
+  const onlineUsersCount = document.getElementById('onlineUsersCount');
+  const avgSessionDuration = document.getElementById('avgSessionDuration');
+  const totalGamesCount = document.getElementById('totalGamesCount');
+  const userTableBody = document.getElementById('userTableBody');
+  const activeSessionsList = document.getElementById('activeSessionsList');
+  const recentSessionsTableBody = document.getElementById('recentSessionsTableBody');
+
+  // Generate a unique ID for the user
+  function generateUniqueId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+  }
+
+  // Format time in minutes and seconds
+  function formatTime(milliseconds) {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  // Format date to readable string
+  function formatDate(timestamp) {
+    if (!timestamp) return 'N/A';
+    
+    const date = timestamp instanceof Date ? timestamp : timestamp.toDate();
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  // Show notification
+  function showNotification(type, title, message, duration = 5000) {
+    notification.className = 'notification ' + type;
+    notificationTitle.textContent = title;
+    notificationMessage.textContent = message;
+    notification.style.display = 'block';
+    
+    // Auto hide after duration
+    setTimeout(hideNotification, duration);
+  }
+
+  // Hide notification
+  function hideNotification() {
+    notification.style.display = 'none';
+  }
+
+  // Debounce function for score updates
+  function debounce(func, wait) {
+    return function() {
+      const context = this;
+      const args = arguments;
+      clearTimeout(scoreUpdateTimeout);
+      isScoreUpdatePending = true;
       
-      let i = 0;
-      function nextLine() {
-        if (i < lines.length) {
-          const line = document.createElement('p');
-          line.className = 'terminal-line';
+      scoreUpdateTimeout = setTimeout(function() {
+        func.apply(context, args);
+        isScoreUpdatePending = false;
+      }, wait);
+    };
+  }
+
+  // Start background music at a lower volume
+  window.addEventListener('load', () => {
+    musicAudio.volume = 0.3;
+    musicAudio.play().catch(error => {
+      console.error("Audio playback failed:", error);
+      isMusicPlaying = false;
+    });
+  });
+
+  // Login functionality
+  startGameBtn.addEventListener('click', () => {
+    const username = usernameInput.value.trim();
+    
+    if (!username) {
+      errorMessage.textContent = 'Kullanıcı adı boş olamaz!';
+      errorMessage.style.display = 'block';
+      return;
+    }
+    
+    // Generate a unique ID for this user session
+    uniqueUserId = generateUniqueId();
+    currentUsername = username;
+    
+    // Display only the username (without the unique ID) to the user
+    usernameDisplay.textContent = username;
+    loginScreen.style.display = 'none';
+    
+    // Initialize the game
+    init();
+    
+    // Subscribe to real-time leaderboard updates
+    subscribeToLeaderboard();
+    
+    // Initialize user in Firebase if they don't exist
+    initializeUserInFirebase();
+    
+    // Start tracking session
+    startSession();
+    
+    // Show welcome notification
+    showNotification('info', 'Hoş Geldiniz!', 'Tetris oyununa hoş geldiniz. İyi eğlenceler!');
+  });
+
+  // Initialize user in Firebase
+  function initializeUserInFirebase() {
+    if (!currentUsername) return;
+    
+    const userIdentifier = `${currentUsername}_${uniqueUserId}`;
+    
+    // Check if user exists
+    db.collection('users')
+      .where('username', '==', currentUsername)
+      .get()
+      .then((querySnapshot) => {
+        if (querySnapshot.empty) {
+          // New user
+          isNewUser = true;
+          db.collection('users').add({
+            username: currentUsername,
+            firstSeen: firebase.firestore.FieldValue.serverTimestamp(),
+            lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+            sessionCount: 1,
+            totalSessionDuration: 0,
+            highScore: 0,
+            gamesPlayed: 0
+          })
+          .then(() => {
+            console.log("New user created in Firebase");
+          })
+          .catch(error => {
+            console.error("Error creating user:", error);
+          });
+        } else {
+          // Existing user
+          isNewUser = false;
+          const userDoc = querySnapshot.docs[0];
           
-          if (lines[i].prompt) {
-            const promptSpan = document.createElement('span');
-            promptSpan.className = 'terminal-prompt';
-            promptSpan.textContent = lines[i].text;
-            line.appendChild(promptSpan);
+          userDoc.ref.update({
+            lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+            sessionCount: firebase.firestore.FieldValue.increment(1)
+          })
+          .then(() => {
+            console.log("User updated in Firebase");
+          })
+          .catch(error => {
+            console.error("Error updating user:", error);
+          });
+        }
+        
+        // Update analytics
+        updateAnalytics('user_login', {
+          username: currentUsername,
+          isNewUser: isNewUser
+        });
+      })
+      .catch(error => {
+        console.error("Error checking user:", error);
+      });
+    
+    // Initialize score
+    db.collection('scores')
+      .where('userIdentifier', '==', userIdentifier)
+      .get()
+      .then((querySnapshot) => {
+        if (querySnapshot.empty) {
+          // New user, add to leaderboard with initial score of 0
+          db.collection('scores').add({
+            username: currentUsername,
+            userIdentifier: userIdentifier,
+            score: 0,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+          })
+          .then(() => {
+            console.log("User initialized in scores");
+            lastSavedScore = 0;
+          })
+          .catch(error => {
+            console.error("Error initializing user score:", error);
+          });
+        } else {
+          // User exists, get their current score
+          const doc = querySnapshot.docs[0];
+          lastSavedScore = doc.data().score;
+        }
+      })
+      .catch(error => {
+        console.error("Error checking user score:", error);
+      });
+  }
+
+  // Start a new session
+  function startSession() {
+    sessionId = generateUniqueId();
+    sessionStartTime = Date.now();
+    gamesPlayed = 0;
+    
+    // Create session in Firebase
+    db.collection('sessions').add({
+      sessionId: sessionId,
+      username: currentUsername,
+      startTime: firebase.firestore.FieldValue.serverTimestamp(),
+      endTime: null,
+      duration: 0,
+      isActive: true,
+      gamesPlayed: 0,
+      highScore: 0
+    })
+    .then(() => {
+      console.log("Session started in Firebase");
+      
+      // Start heartbeat to keep session active
+      startHeartbeat();
+    })
+    .catch(error => {
+      console.error("Error starting session:", error);
+    });
+    
+    // Update analytics
+    updateAnalytics('session_start', {
+      sessionId: sessionId,
+      username: currentUsername,
+      startTime: new Date()
+    });
+  }
+
+  // End the current session
+  function endSession() {
+    if (!sessionId) return;
+    
+    const endTime = Date.now();
+    const sessionDuration = endTime - sessionStartTime;
+    totalSessionDuration += sessionDuration;
+    
+    // Stop heartbeat
+    clearInterval(heartbeatInterval);
+    
+    // Update session in Firebase
+    db.collection('sessions')
+      .where('sessionId', '==', sessionId)
+      .get()
+      .then((querySnapshot) => {
+        if (!querySnapshot.empty) {
+          const sessionDoc = querySnapshot.docs[0];
+          
+          sessionDoc.ref.update({
+            endTime: firebase.firestore.FieldValue.serverTimestamp(),
+            duration: sessionDuration,
+            isActive: false,
+            gamesPlayed: gamesPlayed,
+            highScore: score
+          })
+          .then(() => {
+            console.log("Session ended in Firebase");
+          })
+          .catch(error => {
+            console.error("Error ending session:", error);
+          });
+        }
+      })
+      .catch(error => {
+        console.error("Error finding session:", error);
+      });
+    
+    // Update user's total session duration
+    db.collection('users')
+      .where('username', '==', currentUsername)
+      .get()
+      .then((querySnapshot) => {
+        if (!querySnapshot.empty) {
+          const userDoc = querySnapshot.docs[0];
+          
+          userDoc.ref.update({
+            totalSessionDuration: firebase.firestore.FieldValue.increment(sessionDuration),
+            lastActive: firebase.firestore.FieldValue.serverTimestamp()
+          })
+          .then(() => {
+            console.log("User session duration updated");
+          })
+          .catch(error => {
+            console.error("Error updating user session duration:", error);
+          });
+        }
+      })
+      .catch(error => {
+        console.error("Error finding user for session update:", error);
+      });
+    
+    // Update analytics
+    updateAnalytics('session_end', {
+      sessionId: sessionId,
+      username: currentUsername,
+      duration: sessionDuration,
+      endTime: new Date()
+    });
+    
+    sessionId = null;
+  }
+
+  // Start heartbeat to keep session active
+  function startHeartbeat() {
+    heartbeatInterval = setInterval(() => {
+      // Check if user has been inactive for too long
+      const now = Date.now();
+      if (now - lastActivityTime > SESSION_TIMEOUT) {
+        // User inactive, end session
+        endSession();
+        return;
+      }
+      
+      // Update session in Firebase
+      db.collection('sessions')
+        .where('sessionId', '==', sessionId)
+        .get()
+        .then((querySnapshot) => {
+          if (!querySnapshot.empty) {
+            const sessionDoc = querySnapshot.docs[0];
             
-            const cursorSpan = document.createElement('span');
-            cursorSpan.className = 'terminal-cursor';
-            line.appendChild(cursorSpan);
-          } else {
-            line.textContent = lines[i].text;
+            sessionDoc.ref.update({
+              lastHeartbeat: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => {
+              console.log("Session heartbeat updated");
+            })
+            .catch(error => {
+              console.error("Error updating session heartbeat:", error);
+            });
           }
-          
-          terminal.appendChild(line);
-          terminal.scrollTop = terminal.scrollHeight;
-          
-          i++;
-          setTimeout(nextLine, lines[i-1].delay);
+        })
+        .catch(error => {
+          console.error("Error finding session for heartbeat:", error);
+        });
+      
+      // Update user's last active time
+      db.collection('users')
+        .where('username', '==', currentUsername)
+        .get()
+        .then((querySnapshot) => {
+          if (!querySnapshot.empty) {
+            const userDoc = querySnapshot.docs[0];
+            
+            userDoc.ref.update({
+              lastActive: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .catch(error => {
+              console.error("Error updating user last active time:", error);
+            });
+          }
+        })
+        .catch(error => {
+          console.error("Error finding user for heartbeat:", error);
+        });
+    }, HEARTBEAT_INTERVAL);
+  }
+
+  // Update user activity
+  function updateUserActivity() {
+    lastActivityTime = Date.now();
+  }
+
+  // Update analytics
+  function updateAnalytics(eventType, eventData) {
+    db.collection('analytics').add({
+      eventType: eventType,
+      eventData: eventData,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    })
+    .catch(error => {
+      console.error("Error updating analytics:", error);
+    });
+  }
+
+  // Initialize the game
+  function init() {
+    // Set up the board grid
+    boardElement.style.gridTemplateColumns = `repeat(${BOARD_WIDTH}, 1fr)`;
+    boardElement.style.width = `${BOARD_WIDTH * 30}px`;
+    boardElement.style.height = `${BOARD_HEIGHT * 30}px`;
+    
+    // Create empty board
+    createEmptyBoard();
+    
+    // Render the initial board
+    renderBoard();
+    
+    // Start the game
+    spawnNewPiece();
+    startDropInterval();
+    
+    // Set up event listeners
+    setupEventListeners();
+  }
+
+  // Create an empty board
+  function createEmptyBoard() {
+    board = Array.from({ length: BOARD_HEIGHT }, () => Array(BOARD_WIDTH).fill(0));
+    isBoardFull = false;
+  }
+
+  // Render the board
+  function renderBoard() {
+    // Clear the board
+    boardElement.innerHTML = '';
+    
+    // Render each cell
+    for (let y = 0; y < BOARD_HEIGHT; y++) {
+      for (let x = 0; x < BOARD_WIDTH; x++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.id = `cell-${y}-${x}`;
+        
+        // Check if the cell is part of the current piece
+        if (
+          currentPiece &&
+          currentPiece.tetromino.shape[y - currentPiece.y] &&
+          currentPiece.tetromino.shape[y - currentPiece.y][x - currentPiece.x]
+        ) {
+          cell.classList.add(currentPiece.tetromino.color);
+        } else if (board[y][x]) {
+          cell.classList.add(board[y][x]);
+        }
+        
+        // Add flash animation for completed rows
+        if (completedRows.includes(y)) {
+          cell.classList.add('flash');
+        }
+        
+        boardElement.appendChild(cell);
+      }
+    }
+  }
+
+  // Get a random tetromino
+  function randomTetromino() {
+    const keys = Object.keys(TETROMINOS);
+    const randKey = keys[Math.floor(Math.random() * keys.length)];
+    return TETROMINOS[randKey];
+  }
+
+  // Check for collision
+  function checkCollision(x, y, shape) {
+    for (let row = 0; row < shape.length; row++) {
+      for (let col = 0; col < shape[row].length; col++) {
+        if (shape[row][col] !== 0) {
+          const newX = x + col;
+          const newY = y + row;
+          if (
+            newX < 0 || 
+            newX >= BOARD_WIDTH || 
+            newY >= BOARD_HEIGHT || 
+            (newY >= 0 && board[newY][newX] !== 0)
+          ) {
+            return true;
+          }
         }
       }
-      nextLine();
     }
-  </script>
+    return false;
+  }
+
+  // Check if the board is full (game over condition)
+  function checkBoardFull() {
+    // Check if any cell in the top row is filled
+    return board[0].some(cell => cell !== 0);
+  }
+
+  // Check if a move is valid
+  function isValidMove(x, y, shape) {
+    return !checkCollision(x, y, shape);
+  }
+
+  // Move the current piece left
+  function moveLeft() {
+    if (gameOver) return;
+    if (currentPiece && isValidMove(currentPiece.x - 1, currentPiece.y, currentPiece.tetromino.shape)) {
+      currentPiece.x -= 1;
+      renderBoard();
+      updateUserActivity();
+    }
+  }
+
+  // Move the current piece right
+  function moveRight() {
+    if (gameOver) return;
+    if (currentPiece && isValidMove(currentPiece.x + 1, currentPiece.y, currentPiece.tetromino.shape)) {
+      currentPiece.x += 1;
+      renderBoard();
+      updateUserActivity();
+    }
+  }
+
+  // Move the current piece down
+  function moveDown() {
+    if (gameOver || !currentPiece) return;
+    
+    if (isValidMove(currentPiece.x, currentPiece.y + 1, currentPiece.tetromino.shape)) {
+      currentPiece.y += 1;
+      renderBoard();
+      updateUserActivity();
+    } else {
+      placePiece();
+    }
+  }
+
+  // Rotate the current piece
+  function rotate() {
+    if (gameOver || !currentPiece) return;
+    
+    // Create rotated shape
+    const rotated = currentPiece.tetromino.shape[0].map((_, i) =>
+      currentPiece.tetromino.shape.map(row => row[i]).reverse()
+    );
+    
+    let newX = currentPiece.x;
+    let newY = currentPiece.y;
+    
+    // Try to rotate, if not possible, try to adjust position
+    if (!isValidMove(newX, newY, rotated)) {
+      // Try to move left
+      if (isValidMove(newX - 1, newY, rotated)) {
+        newX -= 1;
+      }
+      // Try to move right
+      else if (isValidMove(newX + 1, newY, rotated)) {
+        newX += 1;
+      }
+      // Try to move up
+      else if (isValidMove(newX, newY - 1, rotated)) {
+        newY -= 1;
+      }
+      // If still not possible, don't rotate
+      else {
+        return;
+      }
+    }
+    
+    currentPiece.x = newX;
+    currentPiece.y = newY;
+    currentPiece.tetromino.shape = rotated;
+    
+    renderBoard();
+    updateUserActivity();
+  }
+
+  // Place the current piece on the board
+  function placePiece() {
+    if (!currentPiece) return;
+    
+    // Add the piece to the board
+    currentPiece.tetromino.shape.forEach((row, y) => {
+      row.forEach((value, x) => {
+        if (value !== 0) {
+          const boardY = y + currentPiece.y;
+          const boardX = x + currentPiece.x;
+          if (boardY >= 0 && boardY < BOARD_HEIGHT && boardX >= 0 && boardX < BOARD_WIDTH) {
+            board[boardY][boardX] = currentPiece.tetromino.color;
+          }
+        }
+      });
+    });
+    
+    // Check for game over condition after placing the piece
+    if (checkBoardFull()) {
+      gameOver = true;
+      gameOverElement.style.display = 'block';
+      clearInterval(dropInterval);
+      
+      // Make sure final score is saved
+      updateScoreNow(score);
+      
+      // Update analytics
+      updateAnalytics('game_over', {
+        username: currentUsername,
+        score: score,
+        level: level
+      });
+      
+      showNotification('info', 'Oyun Bitti!', `Skorunuz: ${score}`);
+      return;
+    }
+    
+    // Check for completed lines
+    clearLines();
+    
+    // Spawn a new piece
+    spawnNewPiece();
+    
+    // Update analytics
+    updateAnalytics('piece_placed', {
+      username: currentUsername,
+      score: score,
+      level: level
+    });
+  }
+
+  // Clear completed lines
+  function clearLines() {
+    completedRows = [];
+    
+    // Find completed rows
+    board.forEach((row, index) => {
+      if (row.every(cell => cell !== 0)) {
+        completedRows.push(index);
+      }
+    });
+    
+    if (completedRows.length > 0) {
+      // Render the board with flashing rows
+      renderBoard();
+      
+      // Remove completed rows after animation
+      setTimeout(() => {
+        // Remove completed rows
+        completedRows.forEach(rowIndex => {
+          board.splice(rowIndex, 1);
+          board.unshift(Array(BOARD_WIDTH).fill(0));
+        });
+        
+        // Update score
+        const newScore = score + completedRows.length * 100;
+        score = newScore;
+        scoreElement.textContent = newScore;
+        
+        // Update score in real-time - with debounce
+        debouncedUpdateScore(newScore);
+        
+        // Check for level up
+        if (Math.floor(score / 500) > level - 1) {
+          level += 1;
+          levelElement.textContent = level;
+          dropTime *= SPEED_INCREASE_FACTOR;
+          clearInterval(dropInterval);
+          startDropInterval();
+          
+          // Update analytics
+          updateAnalytics('level_up', {
+            username: currentUsername,
+            level: level,
+            score: score
+          });
+        }
+        
+        // Update analytics
+        updateAnalytics('lines_cleared', {
+          username: currentUsername,
+          linesCleared: completedRows.length,
+          score: score,
+          level: level
+        });
+        
+        // Clear completed rows
+        completedRows = [];
+        
+        // Render the updated board
+        renderBoard();
+      }, 500);
+    }
+  }
+
+  // Spawn a new piece
+  function spawnNewPiece() {
+    const newPiece = {
+      x: Math.floor(BOARD_WIDTH / 2) - 1,
+      y: 0,
+      tetromino: randomTetromino()
+    };
+    
+    if (checkCollision(newPiece.x, newPiece.y, newPiece.tetromino.shape)) {
+      gameOver = true;
+      gameOverElement.style.display = 'block';
+      clearInterval(dropInterval);
+      
+      // Make sure final score is saved
+      updateScoreNow(score);
+      
+      // Update analytics
+      updateAnalytics('game_over', {
+        username: currentUsername,
+        score: score,
+        level: level
+      });
+      
+      showNotification('info', 'Oyun Bitti!', `Skorunuz: ${score}`);
+    } else {
+      currentPiece = newPiece;
+      renderBoard();
+      updateUserActivity();
+    }
+  }
+
+  // Start the drop interval
+  function startDropInterval() {
+    dropInterval = setInterval(moveDown, dropTime);
+  }
+
+  // Reset the game
+  function resetGame() {
+    clearInterval(dropInterval);
+    createEmptyBoard();
+    currentPiece = null;
+    score = 0;
+    gameOver = false;
+    dropTime = INITIAL_DROP_TIME;
+    level = 1;
+    completedRows = [];
+    gamesPlayed++;
+    
+    scoreElement.textContent = score;
+    levelElement.textContent = level;
+    gameOverElement.style.display = 'none';
+    
+    // Reset score in Firebase
+    updateScoreNow(0);
+    
+    // Update analytics
+    updateAnalytics('game_reset', {
+      username: currentUsername,
+      gamesPlayed: gamesPlayed
+    });
+    
+    // Update session games played
+    if (sessionId) {
+      db.collection('sessions')
+        .where('sessionId', '==', sessionId)
+        .get()
+        .then((querySnapshot) => {
+          if (!querySnapshot.empty) {
+            const sessionDoc = querySnapshot.docs[0];
+            
+            sessionDoc.ref.update({
+              gamesPlayed: firebase.firestore.FieldValue.increment(1)
+            })
+            .catch(error => {
+              console.error("Error updating session games played:", error);
+            });
+          }
+        })
+        .catch(error => {
+          console.error("Error finding session for games update:", error);
+        });
+    }
+    
+    // Update user games played
+    db.collection('users')
+      .where('username', '==', currentUsername)
+      .get()
+      .then((querySnapshot) => {
+        if (!querySnapshot.empty) {
+          const userDoc = querySnapshot.docs[0];
+          
+          userDoc.ref.update({
+            gamesPlayed: firebase.firestore.FieldValue.increment(1)
+          })
+          .catch(error => {
+            console.error("Error updating user games played:", error);
+          });
+        }
+      })
+      .catch(error => {
+        console.error("Error finding user for games update:", error);
+      });
+    
+    spawnNewPiece();
+    startDropInterval();
+    
+    showNotification('success', 'Oyun Sıfırlandı', 'Yeni oyun başlatıldı. İyi şanslar!');
+  }
+
+  // Set up event listeners
+  function setupEventListeners() {
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => {
+      if (gameOver) return;
+      
+      switch (e.key) {
+        case 'ArrowLeft':
+          moveLeft();
+          break;
+        case 'ArrowRight':
+          moveRight();
+          break;
+        case 'ArrowDown':
+          moveDown();
+          break;
+        case 'ArrowUp':
+          rotate();
+          break;
+        default:
+          break;
+      }
+    });
+    
+    // Mobile touch controls
+    if (rotateBtn) {
+      rotateBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        rotate();
+      });
+    }
+    
+    if (leftBtn) {
+      leftBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        moveLeft();
+      });
+    }
+    
+    if (rightBtn) {
+      rightBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        moveRight();
+      });
+    }
+    
+    if (downBtn) {
+      downBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        moveDown();
+      });
+    }
+    
+    // Reset button
+    resetButton.addEventListener('click', resetGame);
+    
+    // Admin panel toggle
+    adminToggle.addEventListener('click', () => {
+      adminPasswordScreen.style.display = 'flex';
+      adminPasswordInput.focus();
+    });
+    
+    // Admin panel close
+    adminClose.addEventListener('click', () => {
+      adminPanel.style.display = 'none';
+      isAdminPanelOpen = false;
+      
+      // Unsubscribe from admin stats
+      if (adminStatsUnsubscribe) {
+        adminStatsUnsubscribe();
+        adminStatsUnsubscribe = null;
+      }
+    });
+    
+    // Admin password submit
+    adminPasswordSubmit.addEventListener('click', () => {
+      const password = adminPasswordInput.value;
+      
+      if (password === ADMIN_PASSWORD) {
+        adminPasswordScreen.style.display = 'none';
+        adminPanel.style.display = 'block';
+        isAdminPanelOpen = true;
+        adminPasswordInput.value = '';
+        
+        // Load admin panel data
+        loadAdminPanelData();
+      } else {
+        showNotification('error', 'Hata', 'Yanlış şifre!');
+      }
+    });
+    
+    // Admin password cancel
+    adminPasswordCancel.addEventListener('click', () => {
+      adminPasswordScreen.style.display = 'none';
+      adminPasswordInput.value = '';
+    });
+    
+    // Admin password enter key
+    adminPasswordInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        adminPasswordSubmit.click();
+      }
+    });
+    
+    // Admin tabs
+    adminTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        // Remove active class from all tabs
+        adminTabs.forEach(t => t.classList.remove('active'));
+        adminTabContents.forEach(c => c.classList.remove('active'));
+        
+        // Add active class to clicked tab
+        tab.classList.add('active');
+        
+        // Show corresponding tab content
+        const tabId = tab.getAttribute('data-tab');
+        document.getElementById(`${tabId}-tab`).classList.add('active');
+      });
+    });
+    
+    // Track user activity
+    document.addEventListener('mousemove', updateUserActivity);
+    document.addEventListener('keydown', updateUserActivity);
+    document.addEventListener('click', updateUserActivity);
+    document.addEventListener('touchstart', updateUserActivity);
+  }
+
+  // Load admin panel data
+  function loadAdminPanelData() {
+    // Unsubscribe from previous subscription
+    if (adminStatsUnsubscribe) {
+      adminStatsUnsubscribe();
+    }
+    
+    // Subscribe to real-time stats updates
+    adminStatsUnsubscribe = db.collection('users').onSnapshot(snapshot => {
+      // Count unique visitors
+      const uniqueVisitors = snapshot.size;
+      uniqueVisitorsCount.textContent = uniqueVisitors;
+      
+      // Count online users (active in the last 5 minutes)
+      const fiveMinutesAgo = new Date();
+      fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
+      
+      let onlineUsers = 0;
+      let totalSessionDuration = 0;
+      let totalSessions = 0;
+      let totalGames = 0;
+      
+      // Clear user table
+      userTableBody.innerHTML = '';
+      
+      snapshot.forEach(doc => {
+        const userData = doc.data();
+        
+        // Check if user is online
+        if (userData.lastActive && userData.lastActive.toDate() > fiveMinutesAgo) {
+          onlineUsers++;
+        }
+        
+        // Add to total session duration
+        if (userData.totalSessionDuration) {
+          totalSessionDuration += userData.totalSessionDuration;
+          totalSessions += userData.sessionCount || 0;
+        }
+        
+        // Add to total games
+        if (userData.gamesPlayed) {
+          totalGames += userData.gamesPlayed;
+        }
+        
+        // Add user to table
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${userData.username}</td>
+          <td>${formatDate(userData.firstSeen)}</td>
+          <td>${formatDate(userData.lastActive)}</td>
+          <td>${userData.sessionCount || 0}</td>
+          <td>${formatTime(userData.totalSessionDuration || 0)}</td>
+          <td>${userData.highScore || 0}</td>
+        `;
+        userTableBody.appendChild(row);
+      });
+      
+      // Update online users count
+      onlineUsersCount.textContent = onlineUsers;
+      
+      // Update average session duration
+      const avgDuration = totalSessions > 0 ? totalSessionDuration / totalSessions : 0;
+      avgSessionDuration.textContent = formatTime(avgDuration);
+      
+      // Update total games count
+      totalGamesCount.textContent = totalGames;
+      
+      // Render charts
+      renderAdminCharts();
+      
+      // Load active sessions
+      loadActiveSessions();
+      
+      // Load recent sessions
+      loadRecentSessions();
+      
+      // Load statistics
+      loadStatistics();
+    }, error => {
+      console.error("Error loading admin stats:", error);
+      showNotification('error', 'Hata', 'Admin paneli verileri yüklenirken bir hata oluştu.');
+    });
+  }
+
+  // Load active sessions
+  function loadActiveSessions() {
+    const fiveMinutesAgo = new Date();
+    fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
+    
+    db.collection('sessions')
+      .where('isActive', '==', true)
+      .orderBy('startTime', 'desc')
+      .limit(10)
+      .get()
+      .then(snapshot => {
+        // Clear active sessions list
+        activeSessionsList.innerHTML = '';
+        
+        if (snapshot.empty) {
+          activeSessionsList.innerHTML = '<div class="user-session-item">No active sessions</div>';
+          return;
+        }
+        
+        snapshot.forEach(doc => {
+          const sessionData = doc.data();
+          const startTime = sessionData.startTime ? sessionData.startTime.toDate() : new Date();
+          const now = new Date();
+          const duration = now - startTime;
+          
+          const sessionItem = document.createElement('div');
+          sessionItem.className = 'user-session-item';
+          sessionItem.innerHTML = `
+            <div class="user-session-info">
+              <div class="user-session-name">${sessionData.username}</div>
+              <div class="user-session-time">${formatDate(startTime)}</div>
+            </div>
+            <div class="user-session-duration">${formatTime(duration)}</div>
+          `;
+          activeSessionsList.appendChild(sessionItem);
+        });
+      })
+      .catch(error => {
+        console.error("Error loading active sessions:", error);
+      });
+  }
+
+  // Load recent sessions
+  function loadRecentSessions() {
+    db.collection('sessions')
+      .orderBy('startTime', 'desc')
+      .limit(10)
+      .get()
+      .then(snapshot => {
+        // Clear recent sessions table
+        recentSessionsTableBody.innerHTML = '';
+        
+        if (snapshot.empty) {
+          const row = document.createElement('tr');
+          row.innerHTML = '<td colspan="6">No recent sessions</td>';
+          recentSessionsTableBody.appendChild(row);
+          return;
+        }
+        
+        snapshot.forEach(doc => {
+          const sessionData = doc.data();
+          const startTime = sessionData.startTime ? sessionData.startTime.toDate() : new Date();
+          const endTime = sessionData.endTime ? sessionData.endTime.toDate() : null;
+          const duration = sessionData.duration || (endTime ? endTime - startTime : 0);
+          
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${sessionData.username}</td>
+            <td>${formatDate(startTime)}</td>
+            <td>${formatTime(duration)}</td>
+            <td>${sessionData.gamesPlayed || 0}</td>
+            <td>${sessionData.highScore || 0}</td>
+            <td>${sessionData.isActive ? '<span class="admin-badge admin-badge-green">Active</span>' : '<span class="admin-badge admin-badge-red">Ended</span>'}</td>
+          `;
+          recentSessionsTableBody.appendChild(row);
+        });
+      })
+      .catch(error => {
+        console.error("Error loading recent sessions:", error);
+      });
+  }
+
+  // Load statistics
+  function loadStatistics() {
+    // Get today's date
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Get yesterday's date
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    // Get start of this week
+    const thisWeekStart = new Date(today);
+    thisWeekStart.setDate(thisWeekStart.getDate() - thisWeekStart.getDay());
+    
+    // Get start of last week
+    const lastWeekStart = new Date(thisWeekStart);
+    lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+    
+    // Get end of last week
+    const lastWeekEnd = new Date(thisWeekStart);
+    lastWeekEnd.setMilliseconds(lastWeekEnd.getMilliseconds() - 1);
+    
+    // Get unique visitors for today
+    db.collection('sessions')
+      .where('startTime', '>=', today)
+      .get()
+      .then(snapshot => {
+        const uniqueUsers = new Set();
+        snapshot.forEach(doc => {
+          uniqueUsers.add(doc.data().username);
+        });
+        document.getElementById('uniqueVisitorsToday').textContent = uniqueUsers.size;
+        document.getElementById('totalSessionsToday').textContent = snapshot.size;
+        
+        // Calculate average duration
+        let totalDuration = 0;
+        snapshot.forEach(doc => {
+          totalDuration += doc.data().duration || 0;
+        });
+        const avgDuration = snapshot.size > 0 ? totalDuration / snapshot.size : 0;
+        document.getElementById('avgDurationToday').textContent = formatTime(avgDuration);
+        
+        // Calculate games played
+        let gamesPlayed = 0;
+        snapshot.forEach(doc => {
+          gamesPlayed += doc.data().gamesPlayed || 0;
+        });
+        document.getElementById('gamesPlayedToday').textContent = gamesPlayed;
+      })
+      .catch(error => {
+        console.error("Error loading today's stats:", error);
+      });
+    
+    // Get unique visitors for yesterday
+    db.collection('sessions')
+      .where('startTime', '>=', yesterday)
+      .where('startTime', '<', today)
+      .get()
+      .then(snapshot => {
+        const uniqueUsers = new Set();
+        snapshot.forEach(doc => {
+          uniqueUsers.add(doc.data().username);
+        });
+        document.getElementById('uniqueVisitorsYesterday').textContent = uniqueUsers.size;
+        document.getElementById('totalSessionsYesterday').textContent = snapshot.size;
+        
+        // Calculate average duration
+        let totalDuration = 0;
+        snapshot.forEach(doc => {
+          totalDuration += doc.data().duration || 0;
+        });
+        const avgDuration = snapshot.size > 0 ? totalDuration / snapshot.size : 0;
+        document.getElementById('avgDurationYesterday').textContent = formatTime(avgDuration);
+        
+        // Calculate games played
+        let gamesPlayed = 0;
+        snapshot.forEach(doc => {
+          gamesPlayed += doc.data().gamesPlayed || 0;
+        });
+        document.getElementById('gamesPlayedYesterday').textContent = gamesPlayed;
+      })
+      .catch(error => {
+        console.error("Error loading yesterday's stats:", error);
+      });
+    
+    // Get unique visitors for this week
+    db.collection('sessions')
+      .where('startTime', '>=', thisWeekStart)
+      .get()
+      .then(snapshot => {
+        const uniqueUsers = new Set();
+        snapshot.forEach(doc => {
+          uniqueUsers.add(doc.data().username);
+        });
+        document.getElementById('uniqueVisitorsThisWeek').textContent = uniqueUsers.size;
+        document.getElementById('totalSessionsThisWeek').textContent = snapshot.size;
+        
+        // Calculate average duration
+        let totalDuration = 0;
+        snapshot.forEach(doc => {
+          totalDuration += doc.data().duration || 0;
+        });
+        const avgDuration = snapshot.size > 0 ? totalDuration / snapshot.size : 0;
+        document.getElementById('avgDurationThisWeek').textContent = formatTime(avgDuration);
+        
+        // Calculate games played
+        let gamesPlayed = 0;
+        snapshot.forEach(doc => {
+          gamesPlayed += doc.data().gamesPlayed || 0;
+        });
+        document.getElementById('gamesPlayedThisWeek').textContent = gamesPlayed;
+      })
+      .catch(error => {
+        console.error("Error loading this week's stats:", error);
+      });
+    
+    // Get unique visitors for last week
+    db.collection('sessions')
+      .where('startTime', '>=', lastWeekStart)
+      .where('startTime', '<', thisWeekStart)
+      .get()
+      .then(snapshot => {
+        const uniqueUsers = new Set();
+        snapshot.forEach(doc => {
+          uniqueUsers.add(doc.data().username);
+        });
+        document.getElementById('uniqueVisitorsLastWeek').textContent = uniqueUsers.size;
+        document.getElementById('totalSessionsLastWeek').textContent = snapshot.size;
+        
+        // Calculate average duration
+        let totalDuration = 0;
+        snapshot.forEach(doc => {
+          totalDuration += doc.data().duration || 0;
+        });
+        const avgDuration = snapshot.size > 0 ? totalDuration / snapshot.size : 0;
+        document.getElementById('avgDurationLastWeek').textContent = formatTime(avgDuration);
+        
+        // Calculate games played
+        let gamesPlayed = 0;
+        snapshot.forEach(doc => {
+          gamesPlayed += doc.data().gamesPlayed || 0;
+        });
+        document.getElementById('gamesPlayedLastWeek').textContent = gamesPlayed;
+      })
+      .catch(error => {
+        console.error("Error loading last week's stats:", error);
+      });
+  }
+
+  // Render admin charts
+  function renderAdminCharts() {
+    // Render visitor activity chart
+    renderVisitorActivityChart();
+    
+    // Render user retention chart
+    renderUserRetentionChart();
+    
+    // Render weekly activity heat map
+    renderWeeklyActivityHeatMap();
+    
+    // Render monthly entries chart
+    renderMonthlyEntriesChart();
+    
+    // Render weekly entries chart
+    renderWeeklyEntriesChart();
+    
+    // Render session duration chart
+    renderSessionDurationChart();
+  }
+
+  // Render visitor activity chart
+  function renderVisitorActivityChart() {
+    const chartContainer = document.getElementById('visitorActivityChart');
+    chartContainer.innerHTML = '';
+    
+    // Get last 7 days
+    const days = [];
+    const today = new Date();
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      days.push(date);
+    }
+    
+    // Get visitor counts for each day
+    const visitorCounts = [15, 22, 19, 28, 32, 25, 30]; // Sample data
+    
+    // Find max count for scaling
+    const maxCount = Math.max(...visitorCounts);
+    
+    // Create chart lines
+    for (let i = 0; i <= 4; i++) {
+      const line = document.createElement('div');
+      line.className = 'chart-line';
+      line.style.bottom = `${i * 25}%`;
+      
+      const label = document.createElement('div');
+      label.className = 'chart-y-label';
+      label.style.bottom = `${i * 25}%`;
+      label.textContent = Math.round(maxCount * (i / 4));
+      
+      chartContainer.appendChild(line);
+      chartContainer.appendChild(label);
+    }
+    
+    // Create bars and labels
+    days.forEach((day, index) => {
+      const count = visitorCounts[index];
+      const percentage = (count / maxCount) * 100;
+      
+      const bar = document.createElement('div');
+      bar.className = 'chart-bar';
+      bar.style.height = `${percentage}%`;
+      bar.style.left = `${index * 14}%`;
+      bar.setAttribute('data-count', count);
+      
+      const label = document.createElement('div');
+      label.className = 'chart-label';
+      label.style.left = `${index * 14}%`;
+      label.textContent = day.toLocaleDateString([], { weekday: 'short' });
+      
+      // Create tooltip
+      const tooltip = document.createElement('div');
+      tooltip.className = 'chart-tooltip';
+      tooltip.textContent = `${count} visitors on ${day.toLocaleDateString()}`;
+      
+      // Show tooltip on hover
+      bar.addEventListener('mouseover', () => {
+        tooltip.style.opacity = '1';
+        tooltip.style.left = `${index * 14}%`;
+        tooltip.style.bottom = `${percentage + 5}%`;
+      });
+      
+      bar.addEventListener('mouseout', () => {
+        tooltip.style.opacity = '0';
+      });
+      
+      chartContainer.appendChild(bar);
+      chartContainer.appendChild(label);
+      chartContainer.appendChild(tooltip);
+    });
+  }
+
+  // Render user retention chart
+  function renderUserRetentionChart() {
+    // Sample data
+    const returningUsers = 75;
+    const newUsers = 25;
+    
+    // Update donut chart
+    const donutChart = document.getElementById('userRetentionChart');
+    donutChart.style.setProperty('--percentage', `${returningUsers}%`);
+    
+    // Update donut label
+    document.getElementById('userRetentionLabel').textContent = `${returningUsers}%`;
+    
+    // Update bars
+    document.getElementById('newUsersBar').style.width = `${newUsers}%`;
+    document.getElementById('returningUsersBar').style.width = `${returningUsers}%`;
+    
+    // Update percentages
+    document.getElementById('newUsersPercentage').textContent = `${newUsers}%`;
+    document.getElementById('returningUsersPercentage').textContent = `${returningUsers}%`;
+  }
+
+  // Render weekly activity heat map
+  function renderWeeklyActivityHeatMap() {
+    const heatMapContainer = document.getElementById('weeklyActivityHeatMap');
+    heatMapContainer.innerHTML = '';
+    
+    // Sample data - activity levels for each day (0-5)
+    const activityData = [
+      [1, 3, 2, 4, 1, 0, 2], // Week 1
+      [2, 4, 3, 5, 2, 1, 0], // Week 2
+      [0, 1, 3, 2, 4, 2, 1], // Week 3
+      [3, 2, 4, 5, 3, 1, 2]  // Week 4
+    ];
+    
+    // Create heat map cells
+    for (let week = 0; week < 4; week++) {
+      for (let day = 0; day < 7; day++) {
+        const cell = document.createElement('div');
+        cell.className = 'heat-map-cell';
+        cell.setAttribute('data-level', activityData[week][day]);
+        
+        // Add tooltip
+        cell.title = `${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][day]}, Week ${week + 1}: ${activityData[week][day] === 0 ? 'No activity' : activityData[week][day] === 1 ? 'Low activity' : activityData[week][day] === 2 ? 'Medium-low activity' : activityData[week][day] === 3 ? 'Medium activity' : activityData[week][day] === 4 ? 'Medium-high activity' : 'High activity'}`;
+        
+        heatMapContainer.appendChild(cell);
+      }
+    }
+  }
+
+  // Render monthly entries chart
+  function renderMonthlyEntriesChart() {
+    const chartContainer = document.getElementById('monthlyEntriesChart');
+    chartContainer.innerHTML = '';
+    
+    // Sample data - entries for each month
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const entryCounts = [45, 52, 68, 74, 59, 83, 90, 110, 85, 92, 105, 120]; // Sample data
+    
+    // Find max count for scaling
+    const maxCount = Math.max(...entryCounts);
+    
+    // Create chart lines
+    for (let i = 0; i <= 4; i++) {
+      const line = document.createElement('div');
+      line.className = 'chart-line';
+      line.style.bottom = `${i * 25}%`;
+      
+      const label = document.createElement('div');
+      label.className = 'chart-y-label';
+      label.style.bottom = `${i * 25}%`;
+      label.textContent = Math.round(maxCount * (i / 4));
+      
+      chartContainer.appendChild(line);
+      chartContainer.appendChild(label);
+    }
+    
+    // Create bars and labels
+    months.forEach((month, index) => {
+      const count = entryCounts[index];
+      const percentage = (count / maxCount) * 100;
+      
+      const bar = document.createElement('div');
+      bar.className = 'chart-bar';
+      bar.style.height = `${percentage}%`;
+      bar.style.left = `${index * 8}%`;
+      bar.setAttribute('data-count', count);
+      
+      const label = document.createElement('div');
+      label.className = 'chart-label';
+      label.style.left = `${index * 8}%`;
+      label.textContent = month;
+      
+      // Create tooltip
+      const tooltip = document.createElement('div');
+      tooltip.className = 'chart-tooltip';
+      tooltip.textContent = `${count} entries in ${month}`;
+      
+      // Show tooltip on hover
+      bar.addEventListener('mouseover', () => {
+        tooltip.style.opacity = '1';
+        tooltip.style.left = `${index * 8}%`;
+        tooltip.style.bottom = `${percentage + 5}%`;
+      });
+      
+      bar.addEventListener('mouseout', () => {
+        tooltip.style.opacity = '0';
+      });
+      
+      chartContainer.appendChild(bar);
+      chartContainer.appendChild(label);
+      chartContainer.appendChild(tooltip);
+    });
+  }
+
+  // Render weekly entries chart
+  function renderWeeklyEntriesChart() {
+    const chartContainer = document.getElementById('weeklyEntriesChart');
+    chartContainer.innerHTML = '';
+    
+    // Sample data - entries for each week
+    const weeks = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+    const entryCounts = [28, 35, 42, 30]; // Sample data
+    
+    // Find max count for scaling
+    const maxCount = Math.max(...entryCounts);
+    
+    // Create chart lines
+    for (let i = 0; i <= 4; i++) {
+      const line = document.createElement('div');
+      line.className = 'chart-line';
+      line.style.bottom = `${i * 25}%`;
+      
+      const label = document.createElement('div');
+      label.className = 'chart-y-label';
+      label.style.bottom = `${i * 25}%`;
+      label.textContent = Math.round(maxCount * (i / 4));
+      
+      chartContainer.appendChild(line);
+      chartContainer.appendChild(label);
+    }
+    
+    // Create bars and labels
+    weeks.forEach((week, index) => {
+      const count = entryCounts[index];
+      const percentage = (count / maxCount) * 100;
+      
+      const bar = document.createElement('div');
+      bar.className = 'chart-bar';
+      bar.style.height = `${percentage}%`;
+      bar.style.left = `${index * 25}%`;
+      bar.style.width = '20%';
+      bar.setAttribute('data-count', count);
+      
+      const label = document.createElement('div');
+      label.className = 'chart-label';
+      label.style.left = `${index * 25}%`;
+      label.style.width = '20%';
+      label.textContent = week;
+      
+      // Create tooltip
+      const tooltip = document.createElement('div');
+      tooltip.className = 'chart-tooltip';
+      tooltip.textContent = `${count} entries in ${week}`;
+      
+      // Show tooltip on hover
+      bar.addEventListener('mouseover', () => {
+        tooltip.style.opacity = '1';
+        tooltip.style.left = `${index * 25}%`;
+        tooltip.style.bottom = `${percentage + 5}%`;
+      });
+      
+      bar.addEventListener('mouseout', () => {
+        tooltip.style.opacity = '0';
+      });
+      
+      chartContainer.appendChild(bar);
+      chartContainer.appendChild(label);
+      chartContainer.appendChild(tooltip);
+    });
+  }
+
+  // Render session duration chart
+  function renderSessionDurationChart() {
+    const chartContainer = document.getElementById('sessionDurationChart');
+    chartContainer.innerHTML = '';
+    
+    // Sample data - session duration distribution
+    const durations = ['0-5 min', '5-15 min', '15-30 min', '30-60 min', '60+ min'];
+    const counts = [15, 25, 35, 20, 5]; // Sample data
+    
+    // Find max count for scaling
+    const maxCount = Math.max(...counts);
+    
+    // Create chart lines
+    for (let i = 0; i <= 4; i++) {
+      const line = document.createElement('div');
+      line.className = 'chart-line';
+      line.style.bottom = `${i * 25}%`;
+      
+      const label = document.createElement('div');
+      label.className = 'chart-y-label';
+      label.style.bottom = `${i * 25}%`;
+      label.textContent = Math.round(maxCount * (i / 4));
+      
+      chartContainer.appendChild(line);
+      chartContainer.appendChild(label);
+    }
+    
+    // Create bars and labels
+    durations.forEach((duration, index) => {
+      const count = counts[index];
+      const percentage = (count / maxCount) * 100;
+      
+      const bar = document.createElement('div');
+      bar.className = 'chart-bar';
+      bar.style.height = `${percentage}%`;
+      bar.style.left = `${index * 20}%`;
+      bar.style.width = '15%';
+      bar.setAttribute('data-count', count);
+      
+      const label = document.createElement('div');
+      label.className = 'chart-label';
+      label.style.left = `${index * 20}%`;
+      label.style.width = '15%';
+      label.textContent = duration;
+      
+      // Create tooltip
+      const tooltip = document.createElement('div');
+      tooltip.className = 'chart-tooltip';
+      tooltip.textContent = `${count} sessions: ${duration}`;
+      
+      // Show tooltip on hover
+      bar.addEventListener('mouseover', () => {
+        tooltip.style.opacity = '1';
+        tooltip.style.left = `${index * 20}%`;
+        tooltip.style.bottom = `${percentage + 5}%`;
+      });
+      
+      bar.addEventListener('mouseout', () => {
+        tooltip.style.opacity = '0';
+      });
+      
+      chartContainer.appendChild(bar);
+      chartContainer.appendChild(label);
+      chartContainer.appendChild(tooltip);
+    });
+  }
+
+  // Create debounced version of updateScore
+  const debouncedUpdateScore = debounce(updateScoreNow, SCORE_UPDATE_DEBOUNCE_TIME);
+
+  // Update score immediately (for critical updates like game over)
+  function updateScoreNow(newScore) {
+    if (!currentUsername || !uniqueUserId) return;
+    
+    // Only update if score has changed to avoid unnecessary writes
+    if (newScore === lastSavedScore) return;
+    
+    lastSavedScore = newScore;
+    const userIdentifier = `${currentUsername}_${uniqueUserId}`;
+    
+    db.collection('scores')
+      .where('userIdentifier', '==', userIdentifier)
+      .get()
+      .then((querySnapshot) => {
+        if (!querySnapshot.empty) {
+          // User exists, update score if higher
+          const doc = querySnapshot.docs[0];
+          const existingScore = doc.data().score;
+          
+          if (newScore > existingScore || newScore === 0) {
+            doc.ref.update({
+              score: newScore,
+              timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => {
+              console.log("Score updated successfully");
+            })
+            .catch(error => {
+              console.error("Error updating score:", error);
+              showNotification('error', 'Skor Güncelleme Hatası', 'Skorunuz kaydedilirken bir hata oluştu. Lütfen internet bağlantınızı kontrol edin.');
+            });
+          }
+        } else {
+          // New user, add to leaderboard
+          db.collection('scores').add({
+            username: currentUsername,
+            userIdentifier: userIdentifier,
+            score: newScore,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+          })
+          .then(() => {
+            console.log("New score added successfully");
+          })
+          .catch(error => {
+            console.error("Error adding new score:", error);
+            showNotification('error', 'Skor Kaydetme Hatası', 'Skorunuz kaydedilirken bir hata oluştu. Lütfen internet bağlantınızı kontrol edin.');
+          });
+        }
+        
+        // Update user's high score if needed
+        if (newScore > 0) {
+          db.collection('users')
+            .where('username', '==', currentUsername)
+            .get()
+            .then((userSnapshot) => {
+              if (!userSnapshot.empty) {
+                const userDoc = userSnapshot.docs[0];
+                const currentHighScore = userDoc.data().highScore || 0;
+                
+                if (newScore > currentHighScore) {
+                  userDoc.ref.update({
+                    highScore: newScore
+                  })
+                  .catch(error => {
+                    console.error("Error updating high score:", error);
+                  });
+                }
+              }
+            })
+            .catch(error => {
+              console.error("Error finding user for high score update:", error);
+            });
+        }
+      })
+      .catch(error => {
+        console.error("Error checking user for score update:", error);
+        showNotification('error', 'Bağlantı Hatası', 'Veritabanına erişilirken bir hata oluştu. Lütfen internet bağlantınızı kontrol edin.');
+      });
+  }
+
+  // Subscribe to real-time leaderboard updates
+  function subscribeToLeaderboard() {
+    if (leaderboardUnsubscribe) {
+      leaderboardUnsubscribe();
+    }
+    
+    leaderboardUnsubscribe = db.collection('scores')
+      .orderBy('score', 'desc')
+      .limit(10)
+      .onSnapshot((snapshot) => {
+        leaderboardList.innerHTML = '';
+        
+        if (snapshot.empty) {
+          const emptyItem = document.createElement('li');
+          emptyItem.className = 'leaderboard-item';
+          emptyItem.innerHTML = `
+            <span class="leaderboard-rank">-</span>
+            <span class="leaderboard-username">Henüz kayıt yok</span>
+            <span class="leaderboard-score">-</span>
+          `;
+          leaderboardList.appendChild(emptyItem);
+          return;
+        }
+        
+        snapshot.docs.forEach((doc, index) => {
+          const data = doc.data();
+          const rank = index + 1;
+          const displayUsername = data.username; // Display only the username part
+          const isCurrentUser = data.userIdentifier && 
+                               data.userIdentifier.startsWith(`${currentUsername}_`);
+          
+          const item = document.createElement('li');
+          item.className = `leaderboard-item rank-${rank}`;
+          
+          if (isCurrentUser) {
+            item.classList.add('current-user');
+          }
+          
+          item.innerHTML = `
+            <span class="leaderboard-rank">${rank}</span>
+            <span class="leaderboard-username">${displayUsername}</span>
+            <span class="leaderboard-score">${data.score}</span>
+          `;
+          
+          leaderboardList.appendChild(item);
+        });
+      }, (error) => {
+        console.error("Leaderboard error:", error);
+        leaderboardList.innerHTML = `
+          <li class="leaderboard-item">
+            <span class="leaderboard-rank">-</span>
+            <span class="leaderboard-username">Hata oluştu</span>
+            <span class="leaderboard-score">-</span>
+          </li>
+        `;
+        showNotification('error', 'Liderlik Tablosu Hatası', 'Liderlik tablosu yüklenirken bir hata oluştu. Lütfen internet bağlantınızı kontrol edin.');
+      });
+  }
+
+  // Clean up when leaving the page
+  window.addEventListener('beforeunload', () => {
+    if (leaderboardUnsubscribe) {
+      leaderboardUnsubscribe();
+    }
+    
+    if (adminStatsUnsubscribe) {
+      adminStatsUnsubscribe();
+    }
+    
+    // End session
+    endSession();
+    
+    // If there's a pending score update, save it immediately
+    if (isScoreUpdatePending) {
+      clearTimeout(scoreUpdateTimeout);
+      updateScoreNow(score);
+    }
+  });
+
+  // Focus on username input when page loads
+  window.addEventListener('load', () => {
+    usernameInput.focus();
+  });
+</script>
 </body>
 </html>
