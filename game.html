@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>oz3R, Inc - Tetris</title>
+  <link rel="stylesheet" href="css/game-styles.css">
+</head>
+<body>
+  <div class="content-wrapper">
+    <h1 class="game-title">Tetris</h1>
+    <div class="main-container">
+      <div class="player-info">
+        <div class="info-item">
+          <div class="info-label">Score:</div>
+          <div id="score" class="info-value">0</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Level:</div>
+          <div id="level" class="info-value">1</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Player:</div>
+          <div id="username" class="username-value"></div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Kick Name:</div>
+          <div id="kickname" class="kickname-value"></div>
+        </div>
+        <div id="gameOver" class="game-over" style="display: none;">Game Over!</div>
+        <div class="controls">
+          <button id="resetBtn">Reset Game</button>
+          <button id="logoutBtn">Logout</button>
+        </div>
+      </div>
+
+      <div class="game-section">
+        <div class="game-container">
+          <div id="board" class="board"></div>
+          <div class="instructions">Press Up Arrow to rotate the block</div>
+        </div>
+        
+        <!-- Mobile touch controls -->
+        <div class="touch-controls">
+          <div class="touch-controls-row">
+            <div class="touch-btn" id="rotateBtn">↻</div>
+          </div>
+          <div class="touch-controls-row">
+            <div class="touch-btn" id="leftBtn">←</div>
+            <div class="touch-btn" id="downBtn">↓</div>
+            <div class="touch-btn" id="rightBtn">→</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="leaderboard">
+        <h2>Liderlik Tablosu 👑</h2>
+        <ul id="leaderboardList" class="leaderboard-list">
+          <li class="leaderboard-item">
+            <span class="leaderboard-rank">-</span>
+            <span class="leaderboard-username">Yükleniyor...</span>
+            <span class="leaderboard-score"><div class="loading"></div></span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    oz3R, Inc
+  </footer>
+
+  <!-- Connection status indicator -->
+  <div id="connectionStatus" class="connection-status online">
+    <div class="connection-status-icon"></div>
+    <span id="connectionStatusText">Online</span>
+  </div>
+
+  <!-- Offline mode overlay -->
+  <div id="offlineMode" class="offline-mode">
+    Playing in offline mode. Your progress will be saved locally.
+  </div>
+
+  <!-- Reconnection countdown -->
+  <div id="reconnectionCountdown" class="reconnection-countdown">
+    Connection lost. Reconnecting... <span id="countdownTimer">30</span> seconds remaining.
+  </div>
+
+  <!-- Notification system -->
+  <div id="notification" class="notification">
+    <div class="notification-close" onclick="hideNotification()">×</div>
+    <div class="notification-title" id="notificationTitle">Title</div>
+    <div class="notification-message" id="notificationMessage">Message</div>
+  </div>
+
+  <audio id="tetrisMusic" src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Tetris-kxnh5j7hpNEcFspAndlU2huV5n6dvk.mp3" loop></audio>
+
+  <!-- Firebase App (the core Firebase SDK) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <!-- Firebase Firestore -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  
+  <!-- Firebase Client -->
+  <script src="js/firebase-client.js"></script>
+  <!-- Game Script -->
+  <script src="js/game.js"></script>
+</body>
+</html>

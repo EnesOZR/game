@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>oz3R, Inc - Tetris</title>
+  <link rel="stylesheet" href="css/login-styles.css">
+</head>
+<body>
+  <!-- Auth screen -->
+  <div id="authScreen" class="login-screen">
+    <h1 class="login-title">oz3R, Inc</h1>
+    <div class="login-container">
+      <div class="auth-tabs">
+        <div class="auth-tab active" data-tab="login">Giriş</div>
+        <div class="auth-tab" data-tab="register">Kayıt Ol</div>
+        <div class="auth-tab" data-tab="reset">Şifre Sıfırla</div>
+      </div>
+      
+      <div id="errorMessage" class="error-message" style="display: none;"></div>
+      
+      <!-- Login Form -->
+      <div id="loginForm" class="auth-form active">
+        <div class="form-group">
+          <label for="loginUsername">Kullanıcı Adı</label>
+          <input type="text" id="loginUsername" placeholder="Kullanıcı adınızı girin" maxlength="20">
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Şifre</label>
+          <input type="password" id="loginPassword" placeholder="Şifrenizi girin">
+        </div>
+        <button id="loginBtn">Giriş Yap</button>
+      </div>
+      
+      <!-- Register Form -->
+      <div id="registerForm" class="auth-form">
+        <div class="form-group">
+          <label for="registerUsername">Kullanıcı Adı</label>
+          <input type="text" id="registerUsername" placeholder="Kullanıcı adınızı girin" maxlength="20">
+          <div class="input-info">Sadece harf, rakam ve alt çizgi kullanabilirsiniz.</div>
+        </div>
+        <div class="form-group">
+          <label for="registerKickName">Kick Kullanıcı Adı</label>
+          <input type="text" id="registerKickName" placeholder="Kick kullanıcı adınızı girin" maxlength="30">
+          <div class="input-info">Kick.com hesabınızın kullanıcı adı.</div>
+        </div>
+        <div class="form-group">
+          <label for="registerPassword">Şifre</label>
+          <input type="password" id="registerPassword" placeholder="Şifrenizi girin" minlength="6">
+          <div class="input-info">En az 6 karakter olmalıdır.</div>
+        </div>
+        <div class="form-group">
+          <label for="registerPasswordConfirm">Şifre Tekrar</label>
+          <input type="password" id="registerPasswordConfirm" placeholder="Şifrenizi tekrar girin">
+        </div>
+        <button id="registerBtn">Kayıt Ol</button>
+      </div>
+      
+      <!-- Password Reset Form -->
+      <div id="resetForm" class="auth-form">
+        <div id="resetCodeSection">
+          <p>Şifrenizi sıfırlamak için aşağıdaki kodu Kick.com sohbetinde gönderin:</p>
+          
+          <div class="reset-code-container">
+            <div class="reset-code" id="resetCode">OZR-XXXX-XXXX-XXXX</div>
+            <button id="copyResetCodeBtn">Kodu Kopyala</button>
+          </div>
+          
+          <div class="reset-instructions">
+            <ol>
+              <li>Kick.com hesabınıza giriş yapın.</li>
+              <li><a href="https://kick.com/guestiva" target="_blank">Sohbet kanalına gidin</a> (yeni sekmede açılır).</li>
+              <li>Sohbete yukarıdaki kodu yazın ve gönderin.</li>
+              <li>"Doğrula" butonuna tıklayın.</li>
+            </ol>
+          </div>
+          
+          <button id="verifyResetCodeBtn">Doğrula</button>
+        </div>
+        
+        <div id="resetPasswordSection" style="display: none;">
+          <div class="form-group">
+            <label for="newPassword">Yeni Şifre</label>
+            <input type="password" id="newPassword" placeholder="Yeni şifrenizi girin" minlength="6">
+            <div class="input-info">En az 6 karakter olmalıdır.</div>
+          </div>
+          <div class="form-group">
+            <label for="confirmNewPassword">Şifre Tekrar</label>
+            <input type="password" id="confirmNewPassword" placeholder="Yeni şifrenizi tekrar girin">
+          </div>
+          <button id="resetPasswordBtn">Şifreyi Sıfırla</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verification screen -->
+  <div id="verificationScreen" class="verification-screen">
+    <div class="verification-container">
+      <h2>Kick.com Hesap Doğrulama</h2>
+      <p>Kick.com hesabınızı doğrulamak için aşağıdaki kodu Kick.com sohbetinde gönderin.</p>
+      
+      <div class="verification-code" id="verificationCode">OZR-XXXX-XXXX-XXXX</div>
+      
+      <button id="copyCodeBtn">Kodu Kopyala</button>
+      
+      <div class="verification-steps">
+        <ol>
+          <li>Kick.com hesabınıza giriş yapın.</li>
+          <li><a href="https://kick.com/enesozr" id="kickChannelLink" target="_blank">Sohbet kanalına gidin</a> (yeni sekmede açılır).</li>
+          <li>Sohbete yukarıdaki kodu yazın ve gönderin.</li>
+          <li>"Doğrula" butonuna tıklayın.</li>
+        </ol>
+      </div>
+      
+      <div class="verification-timer" id="verificationTimer">Kalan süre: 5:00</div>
+      
+      <div class="verification-buttons">
+        <button class="secondary" id="cancelVerificationBtn">İptal</button>
+        <button id="verifyBtn">Doğrula</button>
+      </div>
+      
+      <div id="verificationStatus" class="verification-status"></div>
+    </div>
+  </div>
+
+  <!-- Notification system -->
+  <div id="notification" class="notification">
+    <div class="notification-close" onclick="hideNotification()">×</div>
+    <div class="notification-title" id="notificationTitle">Title</div>
+    <div class="notification-message" id="notificationMessage">Message</div>
+  </div>
+
+  <footer class="footer">
+    oz3R, Inc
+  </footer>
+
+  <!-- Firebase App (the core Firebase SDK) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <!-- Firebase Firestore -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  
+  <!-- Firebase Client -->
+  <script src="js/firebase-client.js"></script>
+  <!-- Login Script -->
+  <script src="js/login.js"></script>
+</body>
+</html>
