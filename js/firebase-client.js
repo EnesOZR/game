@@ -2,12 +2,12 @@
 
 // Firebase yapılandırması
 const firebaseConfig = {
-  apiKey: "AIzaSyBgcQQexhreb-k68wpHZMi_mjLk36x-NR0",
-  authDomain: "enes-ozer.firebaseapp.com",
-  projectId: "enes-ozer",
-  storageBucket: "enes-ozer.firebasestorage.app",
-  messagingSenderId: "875215763332",
-  appId: "1:875215763332:web:998e091db19db86741cfd1",
+  apiKey: "AIzaSyCtvdWwhXnvbWSKshzZayNKo-U8aq6Fa8U",
+  authDomain: "server-c7531.firebaseapp.com",
+  projectId: "server-c7531",
+  storageBucket: "server-c7531.firebasestorage.app",
+  messagingSenderId: "37190898409",
+  appId: "1:37190898409:web:b96e6e386d38c4d6775678"
 };
 
 // Firebase istemcisi
